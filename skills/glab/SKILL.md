@@ -1,69 +1,47 @@
 ---
 name: glab
-description: GitLab CLI workflows with `glab` for issues, merge requests, CI/CD, and API automation. Use when the user needs GitLab command-line operations, GitLab API calls, issue or MR updates, pipeline checks, threaded discussion replies, or self-hosted GitLab workflows.
+description: GitLab CLI workflows with `glab` for issues, merge requests, CI/CD, and GitLab API operations. Use when the user needs GitLab command-line automation, issue or MR triage, pipeline checks, API queries, threaded discussion replies, or work item conversion and hierarchy updates.
 ---
 
 # glab
 
-Use `glab` for GitLab operations from the terminal.
+Use `glab` for GitLab operations. Prefer `glab api` for automation and scripted updates.
 
 ## Routing
 
-- Load `references/cli_quick_reference.md` for common commands and flags.
-- Load `references/workflows.md` for end-to-end issue, MR, and CI workflows.
-- Load `references/rest_api_commands.md` for API-heavy tasks and request patterns.
-- Load `references/troubleshooting.md` when auth, flags, API behavior, or instance config goes wrong.
+Read only the reference file needed for the task:
+
+- Quick command lookup → `references/cli_quick_reference.md`
+- Common issue/MR workflows → `references/workflows.md`
+- REST and GraphQL command patterns → `references/rest_api_commands.md`
+- Errors and recovery → `references/troubleshooting.md`
 
 ## Core rules
 
-- Prefer `glab api` over interactive flows for automation.
-- Use `-R owner/repo` or encoded project paths when outside a Git repository.
+- Use `glab api` instead of interactive flows when repeatability matters.
+- Use `-R owner/repo` when outside a git repository.
 - URL-encode `<namespace>/<project>` as `<namespace>%2F<project>` in API paths.
-- For long multiline Markdown bodies, prefer `--raw-field description="$(cat file)"` over fragile inline escaping.
-- Validate issue or MR text after updates by reading the API response.
-- Check command-specific flags with `glab <command> --help` before scripting uncommon operations.
-- For self-hosted GitLab, set `GITLAB_HOST` when needed.
+- For long multiline Markdown fields, prefer `--raw-field description="$(cat file)"` and validate the rendered result afterward.
+- Check command-specific flags with `glab <command> --help` before automating.
+- For self-hosted GitLab, set `GITLAB_HOST` first.
 
-## Common command patterns
+## High-value patterns
 
-```bash
-# Auth
-glab auth status
-
-# Issues
-glab issue list -R owner/repo --assignee=@me
-glab issue view 123 -R owner/repo
-
-# Merge requests
-glab mr list -R owner/repo
-glab mr create --title "Title" --description "Closes #123"
-
-# CI/CD
-glab ci status
-glab ci lint
-```
-
-## API preference
+### API-first issue update
 
 ```bash
-# GET
-glab api projects/<namespace>%2F<project>/issues/123
-
-# POST
-glab api --method POST projects/<namespace>%2F<project>/issues \
-  --field title="Bug" \
-  --field description="Details"
-
-# PUT with multiline body
-DESC_FILE=/tmp/issue-description.md
 glab api --method PUT projects/<namespace>%2F<project>/issues/123 \
-  --raw-field description="$(cat "$DESC_FILE")"
+  --raw-field description="$(cat /tmp/issue-description.md)"
 ```
 
-## GraphQL note
+### Threaded reply
 
-When REST cannot change a work item type, use GraphQL mutations such as `workItemConvert` or `workItemUpdate`. See `references/rest_api_commands.md` and `references/workflows.md` for exact patterns.
+```bash
+DISC_ID=$(glab api "projects/<namespace>%2F<project>/issues/123/discussions" | jq -r '.[0].id')
+glab api --method POST "projects/<namespace>%2F<project>/issues/123/discussions/$DISC_ID/notes" \
+  --field body="Reply text"
+```
 
-## Discussion replies
+### Work item conversion
 
-Reply to issue or MR discussions through the discussions API instead of plain issue notes when the user wants a threaded reply. See `references/workflows.md` for the exact sequence.
+Use GraphQL `workItemConvert` when REST cannot change the work item type. See `references/rest_api_commands.md` for full mutation examples.
