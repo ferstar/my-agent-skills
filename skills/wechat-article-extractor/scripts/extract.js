@@ -21,33 +21,22 @@ function normalizeUrl(input = '') {
 }
 
 function isSupportedUrl(url) {
-  return /^https?:\/\/mp\.weixin\.qq\.com\//.test(url);
+  return /^https?:\/\/(mp\.weixin\.qq\.com|weixin\.sogou\.com)\//.test(url);
 }
 
-function extractBetween(script, key) {
-  const patterns = [
-    new RegExp(`var\\s+${key}\\s*=\\s*['\"]([\\s\\S]*?)['\"]\\s*;`),
-    new RegExp(`window\\.${key}\\s*=\\s*['\"]([\\s\\S]*?)['\"]\\s*;`),
-    new RegExp(`${key}\\s*:\\s*['\"]([\\s\\S]*?)['\"]`)
-  ];
+function textBetween(source, patterns) {
   for (const pattern of patterns) {
-    const match = script.match(pattern);
+    const match = source.match(pattern);
     if (match && match[1] != null) return match[1];
   }
   return null;
 }
 
-function extractNumber(script, key) {
-  const patterns = [
-    new RegExp(`var\\s+${key}\\s*=\\s*(\\d+)\\s*;`),
-    new RegExp(`window\\.${key}\\s*=\\s*(\\d+)\\s*;`),
-    new RegExp(`${key}\\s*:\\s*(\\d+)`)
-  ];
-  for (const pattern of patterns) {
-    const match = script.match(pattern);
-    if (match && match[1] != null) return Number(match[1]);
-  }
-  return null;
+function numberBetween(source, patterns) {
+  const text = textBetween(source, patterns);
+  if (text == null) return null;
+  const n = Number(text);
+  return Number.isFinite(n) ? n : null;
 }
 
 function htmlToText(html = '') {
@@ -90,6 +79,58 @@ async function fetchHtml(url) {
   return await response.text();
 }
 
+function extractFromMeta($, html, url) {
+  const title =
+    $('.rich_media_title').first().text().trim() ||
+    $('meta[property="og:title"]').attr('content') ||
+    $('title').text().trim() ||
+    null;
+
+  const contentHtml = $('#js_content').html() || null;
+  const publishTimestamp = numberBetween(html, [
+    /var\s+ct\s*=\s*['"]?(\d{10})['"]?\s*;/,
+    /d\.ct\s*=\s*['"]?(\d{10})['"]?/,
+    /create_time\s*=\s*['"]?(\d{10})['"]?/
+  ]);
+  const publishTime = publishTimestamp ? new Date(publishTimestamp * 1000) : null;
+
+  return {
+    account_name:
+      $('.profile_nickname').text().trim() ||
+      $('.wx_follow_nickname').text().trim() ||
+      null,
+    account_alias: null,
+    account_avatar:
+      $('meta[property="og:image"]').attr('content') ||
+      null,
+    account_description: null,
+    account_id: textBetween(html, [/user_name\s*=\s*['"]([^'"]+)['"]/, /var\s+user_name\s*=\s*['"]([^'"]+)['"]/]),
+    account_biz: textBetween(html, [/\bbiz\s*=\s*['"]([^'"]+)['"]/, /var\s+biz\s*=\s*['"]([^'"]+)['"]/]),
+    account_biz_number: null,
+    account_qr_code: null,
+    msg_title: title,
+    msg_desc:
+      $('meta[property="og:description"]').attr('content') ||
+      $('meta[name="description"]').attr('content') ||
+      (contentHtml ? htmlToText(contentHtml).slice(0, 140) : null),
+    msg_content: contentHtml,
+    msg_cover: $('meta[property="og:image"]').attr('content') || null,
+    msg_author:
+      $('meta[name="author"]').attr('content') ||
+      $('#js_author_name').text().trim() ||
+      null,
+    msg_type: 'post',
+    msg_has_copyright: $('#copyright_logo').text().includes('原创'),
+    msg_publish_time: publishTime,
+    msg_publish_time_str: publishTime ? dayjs(publishTime).format('YYYY/MM/DD HH:mm:ss') : null,
+    msg_link: url || null,
+    msg_source_url: textBetween(html, [/msg_source_url\s*=\s*['"]([^'"]+)['"]/]),
+    msg_sn: url ? new URL(url).searchParams.get('sn') : null,
+    msg_mid: url ? new URL(url).searchParams.get('mid') : null,
+    msg_idx: url ? Number(new URL(url).searchParams.get('idx') || 0) || null : null
+  };
+}
+
 async function extract(input, options = {}) {
   if (!input) return getError(2001);
 
@@ -109,75 +150,19 @@ async function extract(input, options = {}) {
 
   const errorCode = detectError(html);
   if (errorCode) return getError(errorCode);
-  if (!html.includes('js_content') && !html.includes('rich_media_title')) return getError(1000);
 
   const $ = cheerio.load(html, { decodeEntities: false });
-  const scripts = ($('script').map((_, el) => $(el).html() || '').get()).join('\n');
+  const data = extractFromMeta($, html, url);
 
-  const title =
-    $('.rich_media_title').first().text().trim() ||
-    $('meta[property="og:title"]').attr('content') ||
-    extractBetween(scripts, 'msg_title');
+  if (data.account_id) {
+    data.account_qr_code = `https://open.weixin.qq.com/qr/code?username=${data.account_id}`;
+  }
 
-  const author =
-    $('meta[name="author"]').attr('content') ||
-    $('#js_author_name').text().trim() ||
-    extractBetween(scripts, 'nickname');
+  if (!data.msg_title || !data.msg_publish_time) {
+    return getError(1001);
+  }
 
-  const contentHtml = config.shouldReturnContent
-    ? ($('#js_content').html() || null)
-    : null;
-
-  const publishTimestamp =
-    extractNumber(scripts, 'ct') ||
-    extractNumber(scripts, 'create_time');
-
-  const publishTime = publishTimestamp ? new Date(publishTimestamp * 1000) : null;
-  const publishTimeStr = publishTime ? dayjs(publishTime).format('YYYY/MM/DD HH:mm:ss') : null;
-
-  const description =
-    $('meta[property="og:description"]').attr('content') ||
-    $('meta[name="description"]').attr('content') ||
-    (contentHtml ? htmlToText(contentHtml).slice(0, 140) : null);
-
-  const cover =
-    $('meta[property="og:image"]').attr('content') ||
-    extractBetween(scripts, 'msg_cdn_url');
-
-  const accountName =
-    $('.profile_nickname').text().trim() ||
-    $('.wx_follow_nickname').text().trim() ||
-    extractBetween(scripts, 'nickname');
-
-  const accountId = extractBetween(scripts, 'user_name');
-  const biz = extractBetween(scripts, 'biz');
-
-  const data = {
-    account_name: accountName || null,
-    account_alias: null,
-    account_avatar: extractBetween(scripts, 'ori_head_img_url') || extractBetween(scripts, 'hd_head_img') || null,
-    account_description: null,
-    account_id: accountId || null,
-    account_biz: biz || null,
-    account_biz_number: null,
-    account_qr_code: accountId ? `https://open.weixin.qq.com/qr/code?username=${accountId}` : null,
-    msg_title: title || null,
-    msg_desc: description || null,
-    msg_content: contentHtml,
-    msg_cover: cover || null,
-    msg_author: author || null,
-    msg_type: 'post',
-    msg_has_copyright: $('#copyright_logo').text().includes('原创'),
-    msg_publish_time: publishTime,
-    msg_publish_time_str: publishTimeStr,
-    msg_link: url || null,
-    msg_source_url: extractBetween(scripts, 'msg_source_url') || null,
-    msg_sn: url ? new URL(url).searchParams.get('sn') : null,
-    msg_mid: url ? new URL(url).searchParams.get('mid') : null,
-    msg_idx: url ? Number(new URL(url).searchParams.get('idx') || 0) || null : null
-  };
-
-  if (!data.msg_title || !data.msg_publish_time) return getError(1001);
+  if (!config.shouldReturnContent) data.msg_content = null;
 
   return { code: 0, done: true, data };
 }
