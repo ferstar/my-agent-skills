@@ -1,5 +1,5 @@
 {
-  "name": "wechat-article-extractor-min",
+  "name": "wechat-article-extractor",
   "private": true,
   "dependencies": {
     "cheerio": "^1.2.0",

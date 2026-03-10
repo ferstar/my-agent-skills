@@ -1,5 +1,5 @@
 ---
-name: wechat-article-extractor-min
+name: wechat-article-extractor
 description: Extract title, metadata, and HTML content from WeChat Official Account article links (mp.weixin.qq.com). Use when the user sends a公众号文章链接 and wants the article parsed, read, or summarized. Prefer this minimal local skill over broad WeChat toolkits when the task is just fetch-and-extract.
 ---
 

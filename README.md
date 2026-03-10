@@ -18,4 +18,4 @@ Private skill repo for custom Agent Skills.
 
 ## Current skills
 
-- `wechat-article-extractor-min` — extract WeChat Official Account article metadata and content from `mp.weixin.qq.com` links
+- `wechat-article-extractor` — extract WeChat Official Account article metadata and content from `mp.weixin.qq.com` links
