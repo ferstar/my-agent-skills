@@ -7,6 +7,14 @@ description: Extract title, metadata, and HTML content from WeChat Official Acco
 
 Use `scripts/extract.js` to fetch and parse a WeChat article URL.
 
+## Setup
+
+Install dependencies once before first use:
+
+```bash
+npm install
+```
+
 ## Workflow
 
 1. Call the extractor with the article URL.

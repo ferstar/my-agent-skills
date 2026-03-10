@@ -115,10 +115,18 @@ function extractFromMeta($, html, url) {
       (contentHtml ? htmlToText(contentHtml).slice(0, 140) : null),
     msg_content: contentHtml,
     msg_cover: $('meta[property="og:image"]').attr('content') || null,
-    msg_author:
-      $('meta[name="author"]').attr('content') ||
-      $('#js_author_name').text().trim() ||
-      null,
+    msg_author: (() => {
+      const candidates = [
+        $('meta[name="author"]').attr('content'),
+        $('#js_name').text().trim(),
+        $('#js_author_name').text().trim(),
+        $('.rich_media_meta.rich_media_meta_text').first().text().trim()
+      ]
+        .map(v => (typeof v === 'string' ? v.trim() : ''))
+        .filter(Boolean)
+        .filter(v => !/^欢迎关注/.test(v));
+      return candidates[0] || null;
+    })(),
     msg_type: 'post',
     msg_has_copyright: $('#copyright_logo').text().includes('原创'),
     msg_publish_time: publishTime,
