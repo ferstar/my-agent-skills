@@ -21,6 +21,8 @@ Current design goals:
 
 ## Conventions
 
+- Keep runtime checks and smoke tests in `tests/`, not inside skill directories
+
 - Keep each skill focused on one job
 - Put trigger conditions and workflow in `SKILL.md`
 - Avoid committing `node_modules`, caches, or temporary outputs
