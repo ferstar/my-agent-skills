@@ -1,6 +1,6 @@
 ---
 name: glab
-description: GitLab CLI workflows with `glab` for issues, merge requests, CI/CD, and GitLab API operations. Use when the user needs GitLab command-line automation, issue or MR triage, pipeline checks, API queries, threaded discussion replies, or work item conversion and hierarchy updates.
+description: GitLab CLI workflows with `glab` for issues, merge requests, CI/CD, and GitLab API operations. Use when the user needs GitLab command-line automation, issue or MR triage, pipeline checks, API queries, discussion replies, release checks, or work item conversion and hierarchy updates, especially when `glab api` is more reliable than interactive GitLab flows.
 ---
 
 # glab
