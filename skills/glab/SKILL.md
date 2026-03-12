@@ -90,6 +90,7 @@ glab auth status
 - Use `glab api` instead of interactive flows when repeatability matters.
 - Use `-R owner/repo` when outside a git repository.
 - URL-encode `<namespace>/<project>` as `<namespace>%2F<project>` in API paths.
+- GitLab UI 的 `/-/work_items/<iid>` 在 REST 评论、notes、discussions 场景下通常仍走 `issues/<iid>` 接口；不要假设存在 `work_items/<iid>/notes` 这类 REST 路径。
 - For long multiline Markdown fields, prefer `--raw-field description="$(cat file)"` and validate the rendered result afterward.
 - Check command-specific flags with `glab <command> --help` before automating.
 - For self-hosted GitLab, set `GITLAB_HOST` first.
@@ -148,6 +149,21 @@ glab api --method PUT projects/<namespace>%2F<project>/issues/123 \
 ```bash
 DISC_ID=$(glab api "projects/<namespace>%2F<project>/issues/123/discussions" | jq -r '.[0].id')
 glab api --method POST "projects/<namespace>%2F<project>/issues/123/discussions/$DISC_ID/notes" \
+  --field body="Reply text"
+```
+
+If the user gives a work item URL such as `/-/work_items/163#note_3612`, map it like this before replying:
+
+```bash
+# 1. Resolve the work item through the issues API.
+glab api "projects/<namespace>%2F<project>/issues/163"
+
+# 2. Find the discussion that contains note 3612.
+DISC_ID=$(glab api "projects/<namespace>%2F<project>/issues/163/discussions" \
+  | jq -r '.[] | select(any(.notes[]; .id == 3612)) | .id')
+
+# 3. Reply in that discussion thread.
+glab api --method POST "projects/<namespace>%2F<project>/issues/163/discussions/$DISC_ID/notes" \
   --field body="Reply text"
 ```
 

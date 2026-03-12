@@ -2,6 +2,31 @@
 
 This is a comprehensive reference for all glab commands. This file is loaded when detailed command information is needed.
 
+## Work Items And REST Notes
+
+GitLab work items are often rendered in the UI under paths like `/-/work_items/<iid>`, but REST note and discussion operations still commonly use the issue endpoints for that same IID.
+
+Use this pattern:
+
+```bash
+# Read a work item via REST
+glab api "projects/<namespace>%2F<project>/issues/163"
+
+# List notes for a work item
+glab api "projects/<namespace>%2F<project>/issues/163/notes"
+
+# List discussions for a work item
+glab api "projects/<namespace>%2F<project>/issues/163/discussions"
+
+# Reply to a specific thread on a work item
+DISC_ID=$(glab api "projects/<namespace>%2F<project>/issues/163/discussions" \
+  | jq -r '.[] | select(any(.notes[]; .id == 3612)) | .id')
+glab api --method POST "projects/<namespace>%2F<project>/issues/163/discussions/$DISC_ID/notes" \
+  --field body="Reply text"
+```
+
+Avoid assuming REST paths such as `projects/<namespace>%2F<project>/work_items/163/notes` exist. On many GitLab instances they return `404 Not Found` even when the UI URL uses `work_items`.
+
 ## Merge Requests (MR)
 
 ### Listing Merge Requests
