@@ -1,0 +1,50 @@
+[
+  {
+    "query": "帮我查一下 OpenAI Responses API 的 background mode 现在官方怎么用，给我带链接和关键差异，最好是最新文档。",
+    "should_trigger": true
+  },
+  {
+    "query": "我在看 FastAPI SSE，想找一些最新、靠谱的实现例子和官方文档，不要只靠你记忆，带出处。",
+    "should_trigger": true
+  },
+  {
+    "query": "Research Anthropic's latest enterprise pricing and compare it with OpenAI's team offerings. I need current external sources, not guesses.",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我快速做个公司背景调查：Exa AI 是做什么的，最近一两年有什么产品定位变化，给几个来源链接。",
+    "should_trigger": true
+  },
+  {
+    "query": "Find recent docs or examples for using SQLAlchemy 2 async sessions with FastAPI lifespan. I want external docs/code context with URLs.",
+    "should_trigger": true
+  },
+  {
+    "query": "查一下 Cursor 最近有没有发布新的 agent 或 background task 相关能力，整理成几条结论并附来源。",
+    "should_trigger": true
+  },
+  {
+    "query": "我本地仓库里搜一下 `AsyncSession` 的用法，看看现有代码怎么写的，不需要联网。",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我重写这段 Python，让变量名更清晰一些。",
+    "should_trigger": false
+  },
+  {
+    "query": "给我解释一下什么是 MCP，概念层面就行，不用查网页。",
+    "should_trigger": false
+  },
+  {
+    "query": "Review this PR and look for regressions in our auth flow.",
+    "should_trigger": false
+  },
+  {
+    "query": "我想让你打开 docs.exa.ai 看看 Contents API 有没有 includeSections 这个参数，并总结一下最新文档。",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我按 Conventional Commits 写一个 commit message：给 exa search 脚本补了 company research 的 JSON 输出。",
+    "should_trigger": false
+  }
+]

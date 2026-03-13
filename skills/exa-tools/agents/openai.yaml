@@ -1,0 +1,4 @@
+interface:
+  display_name: "Exa Tools"
+  short_description: "Use Exa for live web research, docs/code lookup, and company background research"
+  default_prompt: "Use the bundled Exa wrapper to gather current web sources, technical documentation or code context, or company background research with source URLs"

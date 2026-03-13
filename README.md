@@ -11,6 +11,16 @@ Public repository of custom Agent Skills.
 
 ## Current skills
 
+### `exa-tools`
+
+Use the bundled Exa API wrapper for live web research, technical documentation or code lookup, and company background research with source URLs.
+
+Design goals:
+- keep the skill focused on current external research and Exa-backed context gathering
+- prefer a small local wrapper over MCP dependency
+- make command selection obvious in `SKILL.md`
+- preserve structured output paths for downstream automation
+
 ### `wechat-article-extractor`
 
 Extract title, author, publish time, description, cover image, and HTML content from WeChat Official Account article links (`mp.weixin.qq.com`).
