@@ -16,9 +16,9 @@ glab mr list --reviewer=@me
 glab mr list
 
 # Filter by state
-glab mr list --state=merged
-glab mr list --state=closed
-glab mr list --state=all
+glab mr list --merged
+glab mr list --closed
+glab mr list --all
 ```
 
 ### Creating Merge Requests
@@ -122,10 +122,10 @@ glab issue list --label=bug
 glab issue list --label="bug,priority:high"
 
 # List closed issues
-glab issue list --state=closed
+glab issue list --closed
 
 # List all issues (open and closed)
-glab issue list --state=all
+glab issue list --all
 
 # Search issues
 glab issue list --search="login error"
@@ -174,6 +174,9 @@ glab issue update 456 --description "New description"
 
 # Add labels to issue
 glab issue update 456 --label="bug,confirmed"
+
+# Remove labels from issue
+glab issue update 456 --unlabel="todo"
 
 # Assign issue
 glab issue update 456 --assignee=username

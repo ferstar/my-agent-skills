@@ -38,7 +38,6 @@ glab mr note 123 -m "Comment"      # Add comment
 # Listing
 glab issue list                    # Open issues
 glab issue list --all              # Open and closed issues
-glab issue list --opened           # Explicitly open issues
 glab issue list --closed           # Closed issues
 glab issue list --assignee=@me     # Assigned to me
 glab issue list --label=bug        # With label

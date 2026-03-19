@@ -95,6 +95,9 @@ glab auth status
 - Check command-specific flags with `glab <command> --help` before automating.
 - For self-hosted GitLab, set `GITLAB_HOST` first.
 - Prefer `--output=json` or `glab api` + `jq` for scripting and validation.
+- Use default-open / `--closed` / `--all` for `glab issue list`; do not use `--state` or `--opened`.
+- Use `glab issue update --unlabel` instead of `--remove-label`.
+- Do not use `glab mr checks`; inspect MR mergeability with `glab mr view` or `glab api`, and inspect pipelines with `glab ci list` / `glab ci view`.
 
 ## Quick reference
 
@@ -142,6 +145,20 @@ glab api -R owner/repo projects/owner%2Frepo
 ```bash
 glab api --method PUT projects/<namespace>%2F<project>/issues/123 \
   --raw-field description="$(cat /tmp/issue-description.md)"
+```
+
+### MR status and pipelines
+
+```bash
+# Inspect MR summary in terminal
+glab mr view 123
+
+# Inspect mergeability and pipeline fields via API
+glab api "projects/<namespace>%2F<project>/merge_requests/123" \
+  | jq '{state, merge_status, detailed_merge_status, pipeline, head_pipeline}'
+
+# List pipelines for a ref when you need current CI state
+glab ci list --ref my-branch
 ```
 
 ### Threaded reply

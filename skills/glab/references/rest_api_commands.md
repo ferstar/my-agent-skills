@@ -41,9 +41,9 @@ glab mr list --reviewer=@me
 glab mr list
 
 # Filter by state
-glab mr list --state=merged
-glab mr list --state=closed
-glab mr list --state=all
+glab mr list --merged
+glab mr list --closed
+glab mr list --all
 ```
 
 ### Creating Merge Requests

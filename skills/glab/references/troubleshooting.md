@@ -69,7 +69,7 @@ Unknown flag: --state
 
 **Cause:**
 - glab version differences; some commands do not support the same flags across versions.
-- Example: `glab issue list` may support `--opened/--closed/--all` but not `--state`.
+- Example: `glab issue list` supports default-open / `--closed` / `--all`, but not `--state`.
 
 **Solutions:**
 1. Check command help first:
@@ -78,7 +78,7 @@ Unknown flag: --state
    ```
 2. Use supported flags for issue listing:
    ```bash
-   glab issue list --opened
+   glab issue list
    glab issue list --closed
    glab issue list --all
    ```
