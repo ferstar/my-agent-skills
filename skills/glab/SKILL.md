@@ -75,8 +75,11 @@ The `glab api` command can perform arbitrary GitLab API operations with the acti
 ## Prerequisites
 
 Required binaries:
-- `glab`
+- `glab` (version `>= 1.90.0`)
 - `jq`
+
+Minimum supported version:
+- `glab >= 1.90.0`
 
 Authentication:
 - an authenticated `glab` session from `glab auth login`, or
@@ -94,8 +97,11 @@ jq --version
 glab auth status
 ```
 
+If `glab --version` is lower than `1.90.0`, stop and upgrade `glab` before using this skill. Do not rely on older flag behavior or command aliases.
+
 ## Core rules
 
+- This skill requires `glab >= 1.90.0`. Treat lower versions as unsupported.
 - Use `glab api` instead of interactive flows when repeatability matters.
 - Use `-R owner/repo` when outside a git repository.
 - URL-encode `<namespace>/<project>` as `<namespace>%2F<project>` in API paths.
