@@ -30,7 +30,7 @@ glab mr create
 glab mr create --title "Fix bug" --description "Fixes issue #123"
 
 # Create MR for specific issue
-glab mr create 123
+glab mr create --related-issue 123
 
 # Create draft MR
 glab mr create --draft
@@ -53,11 +53,8 @@ glab mr create --remove-source-branch
 
 ### Viewing and Interacting with MRs
 ```bash
-# View MR details (opens in browser by default)
+# View MR details in terminal
 glab mr view 123
-
-# View MR in terminal
-glab mr view 123 --web=false
 
 # View MR with comments
 glab mr view 123 --comments
@@ -68,8 +65,8 @@ glab mr checkout 243
 # Approve MR
 glab mr approve 123
 
-# Unapprove MR
-glab mr unapprove 123
+# Revoke approval
+glab mr revoke 123
 
 # Merge MR
 glab mr merge 123
@@ -160,8 +157,9 @@ glab issue view 456 --web
 # Close issue
 glab issue close 456
 
-# Close with a comment
-glab issue close 456 -m "Fixed in MR !123"
+# Comment on an issue
+glab api --method POST "projects/<namespace>%2F<project>/issues/456/notes" \
+  --field body="Fixed in MR !123"
 
 # Reopen issue
 glab issue reopen 456
@@ -193,7 +191,7 @@ glab issue unsubscribe 456
 ### Viewing Pipelines
 ```bash
 # Watch pipeline in progress (interactive)
-glab pipeline ci view
+glab ci view
 
 # List recent pipelines
 glab ci list
@@ -215,8 +213,8 @@ glab ci trace
 # Get trace for specific job
 glab ci trace <job-id>
 
-# View pipeline details
-glab ci view <pipeline-id>
+# View a specific pipeline
+glab ci view --pipelineid <pipeline-id>
 
 # Delete a pipeline
 glab ci delete <pipeline-id>
@@ -230,17 +228,17 @@ glab ci run
 # Run pipeline for specific branch
 glab ci run --branch=develop
 
-# Run pipeline with variables
-glab ci run --variables-file /tmp/variables.json
+# Run pipeline with file variables
+glab ci run --variables-file CONFIG:path/to/config.json
 
 # Run pipeline with inline variables
-glab ci run -V KEY1=value1 -V KEY2=value2
+glab ci run --variables KEY1:value1 --variables KEY2:value2
 
-# Retry failed pipeline
+# Retry failed job
 glab ci retry
 
-# Retry specific pipeline
-glab ci retry <pipeline-id>
+# Retry specific job
+glab ci retry <job-id|job-name>
 
 # Cancel running pipeline
 glab ci cancel
@@ -255,7 +253,7 @@ glab ci cancel <pipeline-id>
 glab ci lint
 
 # Lint specific file
-glab ci lint --path=.gitlab-ci.yml
+glab ci lint path/to/.gitlab-ci.yml
 
 # View CI configuration
 glab ci config

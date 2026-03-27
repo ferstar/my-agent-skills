@@ -10,6 +10,10 @@ glab auth status                   # Check auth status
 echo "token" | glab auth login --stdin  # Login with token
 ```
 
+Notes:
+- Stored `glab` auth is sufficient for most commands.
+- `GITLAB_TOKEN`, `GITLAB_ACCESS_TOKEN`, and `OAUTH_TOKEN` override stored credentials when set.
+
 ## Merge Requests
 
 ```bash
@@ -41,6 +45,8 @@ glab issue list --all              # Open and closed issues
 glab issue list --closed           # Closed issues
 glab issue list --assignee=@me     # Assigned to me
 glab issue list --label=bug        # With label
+
+# `--opened` still works in 1.90.0, but it is deprecated.
 
 # Creating & Managing
 glab issue create                  # Interactive
@@ -118,15 +124,20 @@ glab config set key value          # Set config value
 - `glab config` - Configuration management
 - `glab deploy-key` - Deploy key management
 - `glab duo` - GitLab Duo AI features
+- `glab gpg-key` - GPG key management
 - `glab incident` - Incident management
 - `glab issue` - Issue tracking
 - `glab iteration` - Iteration management
 - `glab job` - CI job operations
 - `glab label` - Label management
+- `glab mcp` - MCP server operations
+- `glab milestone` - Milestone management
 - `glab mr` - Merge request operations
 - `glab opentofu` - OpenTofu integration
 - `glab release` - Release management
 - `glab repo` - Repository operations
+- `glab runner` - Runner management
+- `glab runner-controller` - Runner controller management
 - `glab schedule` - Pipeline schedule management
 - `glab securefile` - Secure file management
 - `glab snippet` - Snippet operations
@@ -136,6 +147,7 @@ glab config set key value          # Set config value
 - `glab user` - User operations
 - `glab variable` - CI/CD variable management
 - `glab version` - Show version
+- `glab work-items` - Work item management
 
 ## Tips
 

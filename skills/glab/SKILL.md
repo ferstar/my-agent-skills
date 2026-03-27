@@ -10,7 +10,15 @@ metadata:
         - name: GITLAB_TOKEN
           description: GitLab personal access token. Recommend minimal scopes such as read_api for read-only work, and api only when write operations are required.
           secret: true
-          required: true
+          required: false
+        - name: GITLAB_ACCESS_TOKEN
+          description: Alternative token variable recognized by `glab auth login` and runtime auth precedence.
+          secret: true
+          required: false
+        - name: OAUTH_TOKEN
+          description: OAuth token variable recognized by `glab auth login` and runtime auth precedence.
+          secret: true
+          required: false
         - name: GITLAB_HOST
           description: GitLab instance hostname (for example gitlab.example.org). Defaults to gitlab.com when unset.
           required: false
@@ -70,8 +78,9 @@ Required binaries:
 - `glab`
 - `jq`
 
-Required credential:
-- `GITLAB_TOKEN`
+Authentication:
+- an authenticated `glab` session from `glab auth login`, or
+- one of `GITLAB_TOKEN`, `GITLAB_ACCESS_TOKEN`, `OAUTH_TOKEN`
 
 Optional configuration:
 - `GITLAB_HOST` for self-hosted GitLab
@@ -95,7 +104,7 @@ glab auth status
 - Check command-specific flags with `glab <command> --help` before automating.
 - For self-hosted GitLab, set `GITLAB_HOST` first.
 - Prefer `--output=json` or `glab api` + `jq` for scripting and validation.
-- Use default-open / `--closed` / `--all` for `glab issue list`; do not use `--state` or `--opened`.
+- `glab issue list` defaults to open issues. Use `--closed` or `--all` when needed. `--opened` still exists in 1.90.0 but is deprecated; do not introduce new usage. `--state` is unsupported.
 - Use `glab issue update --unlabel` instead of `--remove-label`.
 - Do not use `glab mr checks`; inspect MR mergeability with `glab mr view` or `glab api`, and inspect pipelines with `glab ci list` / `glab ci view`.
 

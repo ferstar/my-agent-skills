@@ -55,7 +55,7 @@ glab mr create
 glab mr create --title "Fix bug" --description "Fixes issue #123"
 
 # Create MR for specific issue
-glab mr create 123
+glab mr create --related-issue 123
 
 # Create draft MR
 glab mr create --draft
@@ -78,11 +78,8 @@ glab mr create --remove-source-branch
 
 ### Viewing and Interacting with MRs
 ```bash
-# View MR details (opens in browser by default)
+# View MR details in terminal
 glab mr view 123
-
-# View MR in terminal
-glab mr view 123 --web=false
 
 # View MR with comments
 glab mr view 123 --comments
@@ -93,8 +90,8 @@ glab mr checkout 243
 # Approve MR
 glab mr approve 123
 
-# Unapprove MR
-glab mr unapprove 123
+# Revoke approval
+glab mr revoke 123
 
 # Merge MR
 glab mr merge 123
@@ -199,8 +196,9 @@ glab issue view 456 --web
 # Close issue
 glab issue close 456
 
-# Close with a comment
-glab issue close 456 -m "Fixed in MR !123"
+# Comment on an issue
+glab api --method POST "projects/<namespace>%2F<project>/issues/456/notes" \
+  --field body="Fixed in MR !123"
 
 # Reopen issue
 glab issue reopen 456

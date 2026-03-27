@@ -447,7 +447,7 @@ failed to download artifacts
 **Solutions:**
 1. Check if job has artifacts:
    ```bash
-   glab ci view <pipeline-id>
+   glab ci view --pipelineid <pipeline-id>
    ```
 
 2. Verify artifacts haven't expired (check project settings)
@@ -624,9 +624,9 @@ x509: certificate signed by unknown authority
    glab mr list --assignee=@me --all
    ```
 
-3. Disable web browser opening:
+3. Keep output in terminal instead of opening the browser:
    ```bash
-   glab mr view 123 --web=false
+   glab mr view 123
    ```
 
 ## Configuration Issues
