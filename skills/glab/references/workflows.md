@@ -25,6 +25,9 @@ git push -u origin feature-branch
 # Create MR
 glab mr create --title "Add feature" --description "Implements X"
 
+# Create MR and auto-close an issue on merge
+glab mr create --title "Fix bug" --description "Closes #123"
+
 # With reviewers and labels
 glab mr create --title "Fix bug" --reviewer=alice,bob --label="bug,urgent"
 ```
@@ -62,6 +65,7 @@ glab issue list --label=doing
 
 # Update
 glab issue update 123 --label="doing"
+glab issue update 123 --unlabel="todo"
 
 # Close
 glab issue close 123
@@ -188,6 +192,9 @@ Work Item Type IDs:
 ```bash
 # Watch pipeline
 glab ci view
+
+# List pipelines for a ref / branch
+glab ci list --ref my-branch
 
 # Check status
 glab ci status

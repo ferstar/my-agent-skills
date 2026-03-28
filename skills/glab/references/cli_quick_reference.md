@@ -25,6 +25,7 @@ glab mr list --reviewer=@me        # MRs for me to review
 # Creating
 glab mr create                     # Interactive creation
 glab mr create --title "Fix" --description "Desc"
+glab mr create --title "Fix" --description "Closes #123"
 glab mr create --draft             # Create draft MR
 glab mr create --reviewer=alice,bob
 
@@ -53,6 +54,7 @@ glab issue create                  # Interactive
 glab issue create --title "Bug" --label=bug
 glab issue view 456                # View issue
 glab issue close 456               # Close issue
+glab issue update 456 --unlabel=todo
 ```
 
 ## CI/CD
@@ -61,6 +63,7 @@ glab issue close 456               # Close issue
 # Pipelines
 glab ci view                       # Watch pipeline
 glab ci list                       # List pipelines
+glab ci list --ref main            # List pipelines for a ref / branch
 glab ci status                     # Pipeline status
 glab ci trace                      # View logs
 
@@ -151,9 +154,10 @@ glab config set key value          # Set config value
 
 ## Tips
 
-1. Use `glab <command> --help` for detailed help
+1. Before using a new `glab` subcommand in the current task, run `glab <command> --help` and trust that over memory
 2. Commands auto-detect repository context from git remote
 3. Use `-R owner/repo` when outside a repository
 4. Most commands have `--web` flag to open in browser
 5. Use `--output=json` for scripting
 6. Enable completion: `glab completion --shell bash`
+7. If you hit `unknown flag`, stop and re-check `glab <command> --help` instead of guessing another flag

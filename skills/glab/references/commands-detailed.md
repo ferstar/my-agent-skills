@@ -32,6 +32,9 @@ glab mr create --title "Fix bug" --description "Fixes issue #123"
 # Create MR for specific issue
 glab mr create --related-issue 123
 
+# Auto-close an issue on merge: keep the closing keyword in the description body
+glab mr create --title "Fix bug" --description "Closes #123"
+
 # Create draft MR
 glab mr create --draft
 
@@ -176,6 +179,9 @@ glab issue update 456 --label="bug,confirmed"
 # Remove labels from issue
 glab issue update 456 --unlabel="todo"
 
+# Do not guess a non-existent remove-label flag
+# Wrong: glab issue update 456 --remove-label=todo
+
 # Assign issue
 glab issue update 456 --assignee=username
 
@@ -196,6 +202,9 @@ glab ci view
 # List recent pipelines
 glab ci list
 
+# Filter pipelines by ref / branch name
+glab ci list --ref=main
+
 # List pipelines with specific status
 glab ci list --status=failed
 glab ci list --status=success
@@ -206,6 +215,9 @@ glab ci status
 
 # View pipeline for specific branch
 glab ci status --branch=main
+
+# Do not guess ci list flags from ci status flags
+# Wrong: glab ci list --branch=main
 
 # Get pipeline trace/logs
 glab ci trace

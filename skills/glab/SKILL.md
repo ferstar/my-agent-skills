@@ -107,12 +107,15 @@ If `glab --version` is lower than `1.90.0`, stop and upgrade `glab` before using
 - URL-encode `<namespace>/<project>` as `<namespace>%2F<project>` in API paths.
 - GitLab UI 的 `/-/work_items/<iid>` 在 REST 评论、notes、discussions 场景下通常仍走 `issues/<iid>` 接口；不要假设存在 `work_items/<iid>/notes` 这类 REST 路径。
 - For long multiline Markdown fields, prefer `--raw-field description="$(cat file)"` and validate the rendered result afterward.
-- Check command-specific flags with `glab <command> --help` before automating.
+- Treat command-specific flags as untrusted until verified from the local CLI help for that exact subcommand. Before using a `glab` subcommand you have not already verified in the current task, run `glab <command> --help` and follow that output instead of memory.
+- If a command fails with `unknown flag`, stop guessing. Re-open `glab <command> --help`, correct the invocation, and only then retry.
 - For self-hosted GitLab, set `GITLAB_HOST` first.
 - Prefer `--output=json` or `glab api` + `jq` for scripting and validation.
 - `glab issue list` defaults to open issues. Use `--closed` or `--all` when needed. `--opened` still exists in 1.90.0 but is deprecated; do not introduce new usage. `--state` is unsupported.
 - Use `glab issue update --unlabel` instead of `--remove-label`.
 - Do not use `glab mr checks`; inspect MR mergeability with `glab mr view` or `glab api`, and inspect pipelines with `glab ci list` / `glab ci view`.
+- For pipelines, prefer `glab ci list --ref <branch>` when filtering by branch or source ref. Do not invent `--branch` for `glab ci list`; verify with `glab ci list --help` if unsure.
+- When creating an MR that must auto-close an issue, keep `Closes #<iid>` in the MR description body. Do not rely on `--related-issue` alone for auto-close semantics.
 
 ## Quick reference
 
@@ -140,6 +143,7 @@ glab issue close 123
 ```bash
 glab ci status
 glab ci view
+glab ci list --ref main
 glab ci trace
 glab ci retry <job-id|job-name>
 glab ci lint
