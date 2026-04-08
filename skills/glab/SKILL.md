@@ -203,6 +203,30 @@ glab api --method POST "projects/<namespace>%2F<project>/issues/163/discussions/
   --field body="Reply text"
 ```
 
+### Download attachments from issue / note threads
+
+When an issue note or discussion note contains `/uploads/...` links and the files must enter the repository, do not rely on the UI URL with plain `curl`. On self-hosted GitLab that often returns an HTML login page instead of the binary file.
+
+Preferred flow:
+
+```bash
+# 1. Read the note body and extract the upload paths you need.
+glab api "projects/<project-id>/issues/<iid>/notes/<note_id>"
+
+# 2. Download the binary through the uploads API, not the UI path.
+glab api "projects/<project-id>/uploads/<secret>/<filename>" > "docs/<Tender>/attachment/<flattened-name>"
+
+# 3. Verify the file type before wiring references.
+file "docs/<Tender>/attachment/<flattened-name>"
+```
+
+Rules:
+
+- Land repo-bound evidence in the target tender's `attachment/` directory before updating正文 or appendix references.
+- Flatten the filename to the repo's attachment naming scheme; do not keep issue-thread URLs in draft text.
+- After download, verify the artifact is really a PDF/image/document and not HTML.
+- If the attachment came from a note URL like `.../issues/40#note_6105`, use the note API first to recover the exact `/uploads/<secret>/<filename>` path.
+
 ### Work item conversion
 
 Use GraphQL `workItemConvert` when REST cannot change the work item type. See `references/rest_api_commands.md` for mutation examples.
