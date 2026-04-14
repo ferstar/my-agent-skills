@@ -75,11 +75,11 @@ The `glab api` command can perform arbitrary GitLab API operations with the acti
 ## Prerequisites
 
 Required binaries:
-- `glab` (version `>= 1.90.0`)
+- `glab` (version `>= 1.91.0`)
 - `jq`
 
 Minimum supported version:
-- `glab >= 1.90.0`
+- `glab >= 1.91.0`
 
 Authentication:
 - an authenticated `glab` session from `glab auth login`, or
@@ -97,11 +97,11 @@ jq --version
 glab auth status
 ```
 
-If `glab --version` is lower than `1.90.0`, stop and upgrade `glab` before using this skill. Do not rely on older flag behavior or command aliases.
+If `glab --version` is lower than `1.91.0`, stop and upgrade `glab` before using this skill. Do not rely on older flag behavior or command aliases.
 
 ## Core rules
 
-- This skill requires `glab >= 1.90.0`. Treat lower versions as unsupported.
+- This skill requires `glab >= 1.91.0`. Treat lower versions as unsupported.
 - Use `glab api` instead of interactive flows when repeatability matters.
 - Use `-R owner/repo` when outside a git repository.
 - URL-encode `<namespace>/<project>` as `<namespace>%2F<project>` in API paths.
@@ -109,11 +109,13 @@ If `glab --version` is lower than `1.90.0`, stop and upgrade `glab` before using
 - For long multiline Markdown fields, prefer `--raw-field description="$(cat file)"` and validate the rendered result afterward.
 - Treat command-specific flags as untrusted until verified from the local CLI help for that exact subcommand. Before using a `glab` subcommand you have not already verified in the current task, run `glab <command> --help` and follow that output instead of memory.
 - If a command fails with `unknown flag`, stop guessing. Re-open `glab <command> --help`, correct the invocation, and only then retry.
+- Treat `glab auth status` as human-readable verification output. In `glab 1.91.0` it prints `Token found:`. Do not build automation around exact wording; use exit status, configured auth, or explicit env vars as the machine-facing signal.
 - For self-hosted GitLab, set `GITLAB_HOST` first.
 - Prefer `--output=json` or `glab api` + `jq` for scripting and validation.
-- `glab issue list` defaults to open issues. Use `--closed` or `--all` when needed. `--opened` still exists in 1.90.0 but is deprecated; do not introduce new usage. `--state` is unsupported.
+- `glab issue list` defaults to open issues. Use `--closed` or `--all` when needed. `--opened` still exists in 1.91.0 examples and remains legacy usage; do not introduce new usage. `--state` is unsupported.
 - Use `glab issue update --unlabel` instead of `--remove-label`.
 - `glab issue delete` has no `--yes` flag in `glab 1.91.0`. Verify with `glab issue delete --help` first. For scripted deletion, pipe confirmation on stdin or use `glab api` if you need a fully non-interactive path.
+- `glab mr note` in 1.91.0 includes experimental `list`, `resolve`, and `reopen` subcommands. Prefer those for MR discussion state changes when available, and fall back to `glab api` when you need a stable non-experimental path.
 - Do not use `glab mr checks`; inspect MR mergeability with `glab mr view` or `glab api`, and inspect pipelines with `glab ci list` / `glab ci view`.
 - For pipelines, prefer `glab ci list --ref <branch>` when filtering by branch or source ref. Do not invent `--branch` for `glab ci list`; verify with `glab ci list --help` if unsure.
 - When creating an MR that must auto-close an issue, keep `Closes #<iid>` in the MR description body. Do not rely on `--related-issue` alone for auto-close semantics.
@@ -128,6 +130,7 @@ glab mr create --title "Fix" --description "Closes #123"
 glab mr list --reviewer=@me
 glab mr checkout 123
 glab mr approve 123
+glab mr note resolve 3107030349
 glab mr merge 123 --remove-source-branch
 ```
 

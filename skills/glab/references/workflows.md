@@ -47,6 +47,12 @@ glab mr approve <mr-number>
 # Comment
 glab mr note <mr-number> -m "LGTM"
 
+# Resolve a discussion by note ID or discussion ID
+glab mr note resolve 3107030349 <mr-number>
+
+# Reopen a discussion by note ID or discussion ID
+glab mr note reopen 3107030349 <mr-number>
+
 # Merge
 glab mr merge <mr-number>
 ```

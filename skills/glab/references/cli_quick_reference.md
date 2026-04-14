@@ -13,6 +13,7 @@ echo "token" | glab auth login --stdin  # Login with token
 Notes:
 - Stored `glab` auth is sufficient for most commands.
 - `GITLAB_TOKEN`, `GITLAB_ACCESS_TOKEN`, and `OAUTH_TOKEN` override stored credentials when set.
+- `glab auth status` is human-readable output. In `glab 1.91.0` the token line shows `Token found:`. Use it for operator checks, not brittle text parsing.
 
 ## Merge Requests
 
@@ -35,6 +36,8 @@ glab mr checkout 123               # Checkout MR branch
 glab mr approve 123                # Approve MR
 glab mr merge 123                  # Merge MR
 glab mr note 123 -m "Comment"      # Add comment
+glab mr note resolve 3107030349    # Resolve MR discussion by note or discussion ID
+glab mr note reopen 3107030349     # Reopen MR discussion by note or discussion ID
 ```
 
 ## Issues
@@ -47,7 +50,7 @@ glab issue list --closed           # Closed issues
 glab issue list --assignee=@me     # Assigned to me
 glab issue list --label=bug        # With label
 
-# `--opened` still works in 1.90.0, but it is deprecated.
+# `--opened` still appears in 1.91.0 examples, and it is legacy usage.
 
 # Creating & Managing
 glab issue create                  # Interactive
