@@ -113,9 +113,11 @@ If `glab --version` is lower than `1.90.0`, stop and upgrade `glab` before using
 - Prefer `--output=json` or `glab api` + `jq` for scripting and validation.
 - `glab issue list` defaults to open issues. Use `--closed` or `--all` when needed. `--opened` still exists in 1.90.0 but is deprecated; do not introduce new usage. `--state` is unsupported.
 - Use `glab issue update --unlabel` instead of `--remove-label`.
+- `glab issue delete` has no `--yes` flag in `glab 1.91.0`. Verify with `glab issue delete --help` first. For scripted deletion, pipe confirmation on stdin or use `glab api` if you need a fully non-interactive path.
 - Do not use `glab mr checks`; inspect MR mergeability with `glab mr view` or `glab api`, and inspect pipelines with `glab ci list` / `glab ci view`.
 - For pipelines, prefer `glab ci list --ref <branch>` when filtering by branch or source ref. Do not invent `--branch` for `glab ci list`; verify with `glab ci list --help` if unsure.
 - When creating an MR that must auto-close an issue, keep `Closes #<iid>` in the MR description body. Do not rely on `--related-issue` alone for auto-close semantics.
+- Issue move only works for real issues. GitLab work items shown as `Task` can fail with `Moving 'Task' is not supported.` When the source URL is `/-/work_items/<iid>` or the API object is a task/work item, check move support first and be ready to recreate it manually in the target project while preserving the source link, state, and any important discussion.
 
 ## Quick reference
 
@@ -230,6 +232,37 @@ Rules:
 ### Work item conversion
 
 Use GraphQL `workItemConvert` when REST cannot change the work item type. See `references/rest_api_commands.md` for mutation examples.
+
+### Moving issues between projects
+
+Before moving, confirm the source is a movable issue:
+
+```bash
+glab api "projects/<namespace>%2F<project>/issues/<iid>" | jq '{iid, issue_type, type, web_url}'
+```
+
+If GitLab rejects the move with `Moving 'Task' is not supported.`, treat it as a manual migration:
+
+```bash
+# 1. Read the source issue / work item and notes.
+glab api "projects/<src>/issues/<iid>"
+glab api "projects/<src>/issues/<iid>/notes?per_page=100"
+
+# 2. Recreate it in the target project as a normal issue.
+glab issue create -R <target-owner>/<target-repo> \
+  --title "..." \
+  --description "$(cat /tmp/body.md)"
+
+# 3. Reapply state explicitly if the source was closed.
+glab issue close <new-iid> -R <target-owner>/<target-repo>
+```
+
+Rules:
+
+- Do not assume child tasks under a moved parent can also be moved.
+- Preserve the original work item URL in the recreated issue body.
+- Summarize important discussion when recreating manually.
+- Re-check the target project after migration; parent moves can auto-create or auto-link child items.
 
 ## Core workflows
 
