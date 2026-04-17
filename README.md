@@ -40,6 +40,15 @@ Design goals:
 - move detail into `references/`
 - prefer `glab api` for repeatable automation
 
+### `opencli`
+
+Use OpenCLI for browser-session-backed web reading and supported site/channel commands such as Doubao, Weixin, Zhihu, YouTube, and Bilibili.
+
+Design goals:
+- prefer site-specific commands before generic `opencli web read`
+- keep the skill scoped to read-only, browser-backed web tasks
+- document strict URL validation and bridge prerequisites
+
 ## Conventions
 
 - Keep each skill focused on one job
