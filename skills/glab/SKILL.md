@@ -119,6 +119,7 @@ If `glab --version` is lower than `1.91.0`, stop and upgrade `glab` before using
 - Do not use `glab mr checks`; inspect MR mergeability with `glab mr view` or `glab api`, and inspect pipelines with `glab ci list` / `glab ci view`.
 - For pipelines, prefer `glab ci list --ref <branch>` when filtering by branch or source ref. Do not invent `--branch` for `glab ci list`; verify with `glab ci list --help` if unsure.
 - When creating an MR that must auto-close an issue, keep `Closes #<iid>` in the MR description body. Do not rely on `--related-issue` alone for auto-close semantics.
+- Do not create a narrowly worded issue before the problem boundary is stable. If the work starts from a symptom and new evidence expands or changes the scope before merge, update the issue title/body and MR description to the actual shipped scope before marking it done or merging. A stale issue is worse than no issue because it misrecords the decision trail.
 - Issue move only works for real issues. GitLab work items shown as `Task` can fail with `Moving 'Task' is not supported.` When the source URL is `/-/work_items/<iid>` or the API object is a task/work item, check move support first and be ready to recreate it manually in the target project while preserving the source link, state, and any important discussion.
 
 ## Quick reference

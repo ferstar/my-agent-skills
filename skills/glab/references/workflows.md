@@ -59,6 +59,14 @@ glab mr merge <mr-number>
 
 ## Issue Workflow
 
+### Scope Hygiene
+
+- Create an issue only after the task boundary is concrete enough to describe the problem, expected outcome, and scope without guessing.
+- If you must create the issue early because the repository workflow requires it, write the body as a symptom-driven placeholder and revisit it after diagnosis.
+- When later evidence changes the real scope, update the issue title/body before MR creation or merge. Also update the MR description so `Closes #<iid>` points to an issue that matches what actually shipped.
+- Before applying final status labels such as `done`, run `glab issue view <iid>` and check that the issue is not stale, overly narrow, or contradicted by the MR.
+- Prefer updating a too-narrow issue over creating a second issue for the same active branch unless the new work is independently shippable.
+
 ### Using CLI Commands
 
 ```bash
