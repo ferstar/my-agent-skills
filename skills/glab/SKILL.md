@@ -75,11 +75,8 @@ The `glab api` command can perform arbitrary GitLab API operations with the acti
 ## Prerequisites
 
 Required binaries:
-- `glab` (version `>= 1.91.0`)
+- `glab`
 - `jq`
-
-Minimum supported version:
-- `glab >= 1.91.0`
 
 Authentication:
 - an authenticated `glab` session from `glab auth login`, or
@@ -89,35 +86,26 @@ Optional configuration:
 - `GITLAB_HOST` for self-hosted GitLab
 - `TIMEOUT` and `INTERVAL` for helper scripts
 
-Quick verification:
-
-```bash
-glab --version
-jq --version
-glab auth status
-```
-
-If `glab --version` is lower than `1.91.0`, stop and upgrade `glab` before using this skill. Do not rely on older flag behavior or command aliases.
+Do not start normal tasks with standalone `glab --version`, `jq --version`, or `glab auth status` checks. Let the first task-specific command prove tool availability and authentication. Run diagnostic checks only after a command fails, when a host/auth mismatch is likely, or when the user explicitly asks for environment verification.
 
 ## Core rules
 
-- This skill requires `glab >= 1.91.0`. Treat lower versions as unsupported.
 - Use `glab api` instead of interactive flows when repeatability matters.
 - Use `-R owner/repo` when outside a git repository.
 - URL-encode `<namespace>/<project>` as `<namespace>%2F<project>` in API paths.
 - GitLab UI 的 `/-/work_items/<iid>` 在 REST 评论、notes、discussions 场景下通常仍走 `issues/<iid>` 接口；不要假设存在 `work_items/<iid>/notes` 这类 REST 路径。
 - For long multiline Markdown fields, prefer `--raw-field description="$(cat file)"` and validate the rendered result afterward.
-- Treat command-specific flags as untrusted until verified from the local CLI help for that exact subcommand. Before using a `glab` subcommand you have not already verified in the current task, run `glab <command> --help` and follow that output instead of memory.
-- If a command fails with `unknown flag`, stop guessing. Re-open `glab <command> --help`, correct the invocation, and only then retry.
-- Treat `glab auth status` as human-readable verification output. In `glab 1.91.0` it prints `Token found:`. Do not build automation around exact wording; use exit status, configured auth, or explicit env vars as the machine-facing signal.
+- Use the known command patterns in this skill first. Run `glab <command> --help` only when the reference is missing, a command is rare or destructive, or a command fails with an unsupported/unknown flag. Do not use help output as routine preflight.
+- If a command fails with `unknown flag`, stop guessing. Open `glab <command> --help`, correct the invocation, and only then retry.
+- Treat `glab auth status` as human-readable diagnostic output. Do not build automation around exact wording; use command exit status, configured auth, or explicit env vars as the machine-facing signal.
 - For self-hosted GitLab, set `GITLAB_HOST` first.
 - Prefer `--output=json` or `glab api` + `jq` for scripting and validation.
-- `glab issue list` defaults to open issues. Use `--closed` or `--all` when needed. `--opened` still exists in 1.91.0 examples and remains legacy usage; do not introduce new usage. `--state` is unsupported.
+- `glab issue list` defaults to open issues. Use `--closed` or `--all` when needed. `--opened` appears in some examples as legacy usage; do not introduce new usage. `--state` is unsupported.
 - Use `glab issue update --unlabel` instead of `--remove-label`.
-- `glab issue delete` has no `--yes` flag in `glab 1.91.0`. Verify with `glab issue delete --help` first. For scripted deletion, pipe confirmation on stdin or use `glab api` if you need a fully non-interactive path.
-- `glab mr note` in 1.91.0 includes experimental `list`, `resolve`, and `reopen` subcommands. Prefer those for MR discussion state changes when available, and fall back to `glab api` when you need a stable non-experimental path.
+- Do not assume `glab issue delete` has a `--yes` flag. For scripted deletion, pipe confirmation on stdin or use `glab api` if you need a fully non-interactive path. Check help only if deletion flags changed or the command fails.
+- `glab mr note` may include experimental `list`, `resolve`, and `reopen` subcommands. Prefer those for MR discussion state changes when available, and fall back to `glab api` when you need a stable non-experimental path.
 - Do not use `glab mr checks`; inspect MR mergeability with `glab mr view` or `glab api`, and inspect pipelines with `glab ci list` / `glab ci view`.
-- For pipelines, prefer `glab ci list --ref <branch>` when filtering by branch or source ref. Do not invent `--branch` for `glab ci list`; verify with `glab ci list --help` if unsure.
+- For pipelines, prefer `glab ci list --ref <branch>` when filtering by branch or source ref. Do not invent `--branch` for `glab ci list`; if the command rejects the flag, check `glab ci list --help` before retrying.
 - When creating an MR that must auto-close an issue, keep `Closes #<iid>` in the MR description body. Do not rely on `--related-issue` alone for auto-close semantics.
 - Do not mix `glab mr create --related-issue` with an already-authored MR body that contains `Closes #<iid>` unless you explicitly want `glab` to mutate the result. In the current CLI/server combination, `--related-issue` can still add coupling side effects such as a duplicated `Closes #<iid>` line and an unexpected Draft MR. If title/description are already finalized, prefer plain `glab mr create`, then verify with `glab mr view` and patch via `glab mr update` or `glab api` if needed.
 - Treat the terminal line `No pipeline running` during `glab mr merge` as informational, not an automatic merge failure. The real gate is MR mergeability from `glab api` / `glab mr view`, plus the final merged state.
@@ -321,7 +309,6 @@ Environment variables commonly used by scripts:
 
 ```bash
 export GITLAB_HOST=gitlab.example.org
-glab auth status
 glab mr list -R group/project
 ```
 
@@ -341,7 +328,7 @@ For detailed recovery steps, read `references/troubleshooting.md`.
 
 ## Best practices
 
-1. Verify authentication before making changes.
+1. Let the first task-specific command verify auth; run separate auth checks only after auth/host errors or explicit user request.
 2. Prefer API-first automation for repeatability.
 3. Use minimal token scopes.
 4. Prefer structured output for scripts.

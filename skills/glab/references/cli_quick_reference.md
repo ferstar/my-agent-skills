@@ -6,14 +6,16 @@ A condensed reference for the most commonly used GitLab CLI commands.
 
 ```bash
 glab auth login                    # Interactive login
-glab auth status                   # Check auth status
 echo "token" | glab auth login --stdin  # Login with token
+
+# Diagnostics only after an auth/host error, or when explicitly requested
+glab auth status
 ```
 
 Notes:
 - Stored `glab` auth is sufficient for most commands.
 - `GITLAB_TOKEN`, `GITLAB_ACCESS_TOKEN`, and `OAUTH_TOKEN` override stored credentials when set.
-- `glab auth status` is human-readable output. In `glab 1.91.0` the token line shows `Token found:`. Use it for operator checks, not brittle text parsing.
+- Do not run `glab auth status` as routine preflight. Use it for operator diagnostics, not brittle text parsing.
 
 ## Merge Requests
 
@@ -166,7 +168,7 @@ glab config set key value          # Set config value
 
 ## Tips
 
-1. Before using a new `glab` subcommand in the current task, run `glab <command> --help` and trust that over memory
+1. Use the known command patterns first; run `glab <command> --help` only when a reference is missing, a command is rare or destructive, or a flag fails
 2. Commands auto-detect repository context from git remote
 3. Use `-R owner/repo` when outside a repository
 4. Most commands have `--web` flag to open in browser
