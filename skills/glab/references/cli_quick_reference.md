@@ -40,6 +40,11 @@ glab mr note resolve 3107030349    # Resolve MR discussion by note or discussion
 glab mr note reopen 3107030349     # Reopen MR discussion by note or discussion ID
 ```
 
+Notes:
+- If the MR body already contains `Closes #123`, avoid mixing that with `glab mr create --related-issue` unless you want `glab` to mutate the result. Verify afterward with `glab mr view`.
+- Prefer exact-SHA merges for non-trivial delivery: `glab mr merge 123 --sha <head_sha> --remove-source-branch --yes`
+- `No pipeline running` during merge can still end in a successful merge; verify the final MR state instead of treating that line as failure.
+
 ## Issues
 
 ```bash
@@ -59,6 +64,10 @@ glab issue view 456                # View issue
 glab issue close 456               # Close issue
 glab issue update 456 --unlabel=todo
 ```
+
+After MR auto-close:
+- Re-check both issue state and labels: `glab issue view 456`
+- If labels lag behind state, fix them explicitly: `glab issue update 456 --unlabel=doing --label=done`
 
 ## CI/CD
 

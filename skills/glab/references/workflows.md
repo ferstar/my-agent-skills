@@ -32,6 +32,11 @@ glab mr create --title "Fix bug" --description "Closes #123"
 glab mr create --title "Fix bug" --reviewer=alice,bob --label="bug,urgent"
 ```
 
+Notes:
+
+- If your MR description already contains `Closes #<iid>`, prefer plain `glab mr create` over `glab mr create --related-issue`. In the current CLI/server combination, `--related-issue` can still mutate the result, including duplicating `Closes #<iid>` and unexpectedly creating a Draft MR.
+- After creation, always run `glab mr view <iid>` and verify title, draft state, labels, and the rendered body. If `glab mr create` added or changed more than intended, patch it immediately with `glab mr update` or `glab api --method PUT`.
+
 ### Reviewing MR
 
 ```bash
@@ -55,6 +60,22 @@ glab mr note reopen 3107030349 <mr-number>
 
 # Merge
 glab mr merge <mr-number>
+```
+
+Safer merge pattern:
+
+```bash
+# 1. Re-check the exact head SHA and mergeability right before merge
+MR_JSON=$(glab api "projects/<namespace>%2F<project>/merge_requests/<iid>")
+HEAD_SHA=$(jq -r '.sha' <<<"$MR_JSON")
+jq '{state, detailed_merge_status, sha}' <<<"$MR_JSON"
+
+# 2. Merge against the exact reviewed SHA
+glab mr merge <iid> --sha "$HEAD_SHA" --remove-source-branch --yes
+
+# 3. If the terminal prints "No pipeline running", treat it as informational.
+#    Confirm success from the returned merge result or a fresh `glab mr view`.
+glab mr view <iid>
 ```
 
 ## Issue Workflow
@@ -84,6 +105,11 @@ glab issue update 123 --unlabel="todo"
 # Close
 glab issue close 123
 ```
+
+After MR merge:
+
+- If the issue was auto-closed through `Closes #<iid>`, run `glab issue view <iid>` and verify both `state` and labels.
+- If GitLab closed the issue but left workflow labels such as `doing`, fix them explicitly with `glab issue update <iid> --unlabel doing --label done`.
 
 ### Using API (Recommended for Automation)
 

@@ -84,6 +84,74 @@ Unknown flag: --state
    ```
 3. Avoid copying flag usage between commands (`mr list` and `issue list` are not always symmetric).
 
+### `glab mr create --related-issue` produced an unexpected Draft MR or duplicated `Closes #...`
+
+**Symptoms:**
+```text
+Creating draft merge request ...
+```
+
+or the final MR body contains duplicated `Closes #123` lines even though you already supplied one.
+
+**Cause:**
+- In the current CLI/server combination, `--related-issue` can still apply extra MR coupling behavior even when you already provide explicit title/description.
+
+**Safer approach:**
+1. If your description already contains `Closes #<iid>`, prefer:
+   ```bash
+   glab mr create --title "..." --description "$(cat /tmp/mr.md)"
+   ```
+   instead of adding `--related-issue`.
+2. Immediately verify the saved MR:
+   ```bash
+   glab mr view <iid>
+   ```
+3. If the MR was unexpectedly created as Draft or the body was mutated, patch it directly:
+   ```bash
+   glab api --method PUT "projects/<namespace>%2F<project>/merge_requests/<iid>" \
+     --raw-field title="Final title" \
+     --raw-field description="$(cat /tmp/mr.md)"
+   ```
+
+### `glab mr merge` says `No pipeline running`
+
+**Symptom:**
+```text
+! No pipeline running on my-branch
+✓ Merged!
+```
+
+**Meaning:**
+- This line is informational in the current environment. It does not mean the merge failed.
+
+**What to do:**
+1. Check mergeability before merge:
+   ```bash
+   glab api "projects/<namespace>%2F<project>/merge_requests/<iid>" \
+     | jq '{state, detailed_merge_status, sha}'
+   ```
+2. Merge with exact SHA protection:
+   ```bash
+   glab mr merge <iid> --sha <head_sha> --remove-source-branch --yes
+   ```
+3. Verify the final state:
+   ```bash
+   glab mr view <iid>
+   ```
+
+### Issue auto-closed but workflow label stayed `doing`
+
+**Symptom:**
+- MR with `Closes #<iid>` merged successfully
+- `glab issue view <iid>` shows `state: closed`
+- but labels still include `doing`
+
+**Fix:**
+```bash
+glab issue update <iid> --unlabel doing --label done
+glab issue view <iid>
+```
+
 ### HTTP 415 on `glab api --input`
 
 **Error:**
