@@ -106,7 +106,7 @@ glab mr close 123
 glab mr reopen 123
 
 # Add note/comment to MR
-glab mr note 123 -m "Looks good to me"
+glab mr note create 123 -m "Looks good to me"
 
 # Reply to a comment (threaded discussion) - Issue
 # 1. Get discussion ID
@@ -317,9 +317,9 @@ GITLAB_HOST=gitlab.example.org glab repo clone groupname/project
 # Clone repository by group (interactive)
 glab repo clone -g groupname
 
-# Clone with specific protocol
-glab repo clone namespace/project --protocol=ssh
-glab repo clone namespace/project --protocol=https
+# Clone with specific protocol by using an explicit clone URL
+glab repo clone git@gitlab.com:namespace/project.git
+glab repo clone https://gitlab.com/namespace/project.git
 ```
 
 ### Repository Information and Management
@@ -336,14 +336,14 @@ glab repo view --web
 # Fork repository
 glab repo fork
 
-# Fork to specific namespace
-glab repo fork --clone --namespace=mygroup
+# Fork and clone
+glab repo fork namespace/repo --clone
 
 # Archive repository
 glab repo archive owner/project
 
-# Unarchive repository
-glab repo unarchive owner/project
+# Unarchive repository via API
+glab api --method POST projects/owner%2Fproject/unarchive
 
 # Delete repository
 glab repo delete owner/project
@@ -437,7 +437,7 @@ glab release create v1.0.0 --notes "Release notes here"
 glab release create v1.0.0 --notes-file CHANGELOG.md
 
 # Create release with assets
-glab release create v1.0.0 --asset-links='[{"name":"Asset","url":"https://..."}]'
+glab release create v1.0.0 --assets-links='[{"name":"Asset","url":"https://..."}]'
 
 # View specific release
 glab release view v1.0.0
@@ -453,10 +453,7 @@ glab release delete v1.0.0
 
 ```bash
 # List snippets
-glab snippet list
-
-# List all snippets (including private)
-glab snippet list --all
+glab api projects/<namespace>%2F<project>/snippets
 
 # Create snippet
 glab snippet create --title "Config" --filename config.yml
@@ -464,24 +461,22 @@ glab snippet create --title "Config" --filename config.yml
 # Create snippet from file
 glab snippet create --title "Script" myfile.sh
 
-# Create private snippet
-glab snippet create --title "Secret" --private secret.txt
+# Create personal snippet
+glab snippet create --title "Secret" --personal secret.txt
 
-# View snippet
-glab snippet view <snippet-id>
-
-# Delete snippet
-glab snippet delete <snippet-id>
+# For snippet view/delete, use `glab api` because this `glab` build exposes only snippet creation.
+glab api projects/<namespace>%2F<project>/snippets/<snippet-id>
+glab api --method DELETE projects/<namespace>%2F<project>/snippets/<snippet-id>
 ```
 
 ## User Operations
 
 ```bash
 # View current user information
-glab user view
+glab api user
 
 # View specific user
-glab user view username
+glab api "users?username=username"
 
 # List user's events
 glab user events
@@ -556,7 +551,7 @@ glab ssh-key delete <key-id>
 glab deploy-key list
 
 # Add deploy key
-glab deploy-key add --title "CI/CD" --key "ssh-rsa ..."
+glab deploy-key add ~/.ssh/id_rsa.pub --title "CI/CD"
 
 # Delete deploy key
 glab deploy-key delete <key-id>

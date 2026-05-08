@@ -72,17 +72,14 @@ Unknown flag: --state
 - Example: `glab issue list` supports default-open / `--closed` / `--all`, but not `--state`.
 
 **Solutions:**
-1. Check command help first:
-   ```bash
-   glab issue list --help
-   ```
-2. Use supported flags for issue listing:
+1. Use supported flags for issue listing:
    ```bash
    glab issue list
    glab issue list --closed
    glab issue list --all
    ```
-3. Avoid copying flag usage between commands (`mr list` and `issue list` are not always symmetric).
+2. Avoid copying flag usage between commands (`mr list` and `issue list` are not always symmetric).
+3. If a different flag still fails, inspect that exact subcommand help once before retrying.
 
 ### `glab mr create --related-issue` produced an unexpected Draft MR or duplicated `Closes #...`
 
@@ -353,7 +350,7 @@ failed to create merge request: source branch already has a merge request
 1. List existing MRs to find it:
    ```bash
    glab mr list
-   glab mr list --source-branch=$(git branch --show-current)
+   glab mr list --source-branch my-branch
    ```
 
 2. View the existing MR:
@@ -425,10 +422,9 @@ cannot merge: pipeline must succeed
    glab ci retry <job-id|job-name>
    ```
 
-4. If project settings allow, force merge (not recommended):
+4. If project settings allow, enable auto-merge:
    ```bash
-   # Only if you have maintainer permissions
-   glab mr merge <mr-number> --when-pipeline-succeeds
+   glab mr merge <mr-number> --auto-merge
    ```
 
 ### Cannot Push to Source Branch
@@ -737,30 +733,20 @@ When encountering any error:
    glab check-update
    ```
 
-3. **Enable verbose output:**
-   ```bash
-   glab <command> --verbose
-   ```
-
-4. **Check authentication:**
+3. **Check authentication:**
    ```bash
    glab auth status
    ```
 
-5. **Verify repository context:**
+4. **Verify repository context:**
    ```bash
    git remote -v
    ```
 
-6. **Use --help:**
-   ```bash
-   glab <command> --help
-   ```
-
-7. **Check GitLab API status:**
+5. **Check GitLab API status:**
    Visit https://status.gitlab.com
 
-8. **Review logs:**
+6. **Review logs:**
    ```bash
    # Check recent commands
    history | grep glab

@@ -50,7 +50,7 @@ glab mr checkout <mr-number>
 glab mr approve <mr-number>
 
 # Comment
-glab mr note <mr-number> -m "LGTM"
+glab mr note create <mr-number> -m "LGTM"
 
 # Resolve a discussion by note ID or discussion ID
 glab mr note resolve 3107030349 <mr-number>

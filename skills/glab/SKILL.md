@@ -95,17 +95,16 @@ Do not start normal tasks with standalone `glab --version`, `jq --version`, or `
 - URL-encode `<namespace>/<project>` as `<namespace>%2F<project>` in API paths.
 - GitLab UI 的 `/-/work_items/<iid>` 在 REST 评论、notes、discussions 场景下通常仍走 `issues/<iid>` 接口；不要假设存在 `work_items/<iid>/notes` 这类 REST 路径。
 - For long multiline Markdown fields, prefer `--raw-field description="$(cat file)"` and validate the rendered result afterward.
-- Use the known command patterns in this skill first. Run `glab <command> --help` only when the reference is missing, a command is rare or destructive, or a command fails with an unsupported/unknown flag. Do not use help output as routine preflight.
-- If a command fails with `unknown flag`, stop guessing. Open `glab <command> --help`, correct the invocation, and only then retry.
+- Use the known command patterns in this skill first. Do not run `glab <command> --help` while executing documented workflows. If a command fails with an unsupported/unknown flag, inspect that exact subcommand help once, correct the invocation, and only then retry.
 - Treat `glab auth status` as human-readable diagnostic output. Do not build automation around exact wording; use command exit status, configured auth, or explicit env vars as the machine-facing signal.
 - For self-hosted GitLab, set `GITLAB_HOST` first.
 - Prefer `--output=json` or `glab api` + `jq` for scripting and validation.
 - `glab issue list` defaults to open issues. Use `--closed` or `--all` when needed. `--opened` appears in some examples as legacy usage; do not introduce new usage. `--state` is unsupported.
 - Use `glab issue update --unlabel` instead of `--remove-label`.
-- Do not assume `glab issue delete` has a `--yes` flag. For scripted deletion, pipe confirmation on stdin or use `glab api` if you need a fully non-interactive path. Check help only if deletion flags changed or the command fails.
+- Do not assume `glab issue delete` has a `--yes` flag. For scripted deletion, pipe confirmation on stdin or use `glab api` if you need a fully non-interactive path.
 - `glab mr note` may include experimental `list`, `resolve`, and `reopen` subcommands. Prefer those for MR discussion state changes when available, and fall back to `glab api` when you need a stable non-experimental path.
 - Do not use `glab mr checks`; inspect MR mergeability with `glab mr view` or `glab api`, and inspect pipelines with `glab ci list` / `glab ci view`.
-- For pipelines, prefer `glab ci list --ref <branch>` when filtering by branch or source ref. Do not invent `--branch` for `glab ci list`; if the command rejects the flag, check `glab ci list --help` before retrying.
+- For pipelines, prefer `glab ci list --ref <branch>` when filtering by branch or source ref. Do not invent `--branch` for `glab ci list`; if the command rejects the flag, use `glab api` for pipeline lookup instead of trying nearby flags.
 - When creating an MR that must auto-close an issue, keep `Closes #<iid>` in the MR description body. Do not rely on `--related-issue` alone for auto-close semantics.
 - Do not mix `glab mr create --related-issue` with an already-authored MR body that contains `Closes #<iid>` unless you explicitly want `glab` to mutate the result. In the current CLI/server combination, `--related-issue` can still add coupling side effects such as a duplicated `Closes #<iid>` line and an unexpected Draft MR. If title/description are already finalized, prefer plain `glab mr create`, then verify with `glab mr view` and patch via `glab mr update` or `glab api` if needed.
 - Treat the terminal line `No pipeline running` during `glab mr merge` as informational, not an automatic merge failure. The real gate is MR mergeability from `glab api` / `glab mr view`, plus the final merged state.
@@ -151,7 +150,7 @@ glab ci lint
 ```bash
 glab mr list -R owner/repo
 glab issue list -R owner/repo
-glab api -R owner/repo projects/owner%2Frepo
+glab api projects/owner%2Frepo
 ```
 
 ## High-value patterns
@@ -275,7 +274,7 @@ glab mr merge 123 --remove-source-branch
 ```bash
 glab mr list --reviewer=@me
 glab mr checkout 123
-glab mr note 123 -m "Looks good overall; one suggestion below."
+glab mr note create 123 -m "Looks good overall; one suggestion below."
 glab mr approve 123
 ```
 
@@ -321,7 +320,7 @@ Common examples:
 - `401 Unauthorized` → verify `GITLAB_TOKEN` or `glab auth login`
 - `404 Project Not Found` → verify project path and permissions
 - `not a git repository` → use `-R owner/repo`
-- `Unknown flag` → check `glab <command> --help`; flags differ across versions
+- `Unknown flag` → use the documented pattern first; inspect exact subcommand help once only if the error remains
 - `HTTP 415` on `glab api --input` → retry with `--field` or `--raw-field`
 
 For detailed recovery steps, read `references/troubleshooting.md`.

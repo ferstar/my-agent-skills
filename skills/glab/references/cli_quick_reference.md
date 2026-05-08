@@ -37,7 +37,7 @@ glab mr view 123                   # View MR #123
 glab mr checkout 123               # Checkout MR branch
 glab mr approve 123                # Approve MR
 glab mr merge 123                  # Merge MR
-glab mr note 123 -m "Comment"      # Add comment
+glab mr note create 123 -m "Comment"  # Add comment
 glab mr note resolve 3107030349    # Resolve MR discussion by note or discussion ID
 glab mr note reopen 3107030349     # Reopen MR discussion by note or discussion ID
 ```
@@ -107,7 +107,6 @@ glab api --method POST projects/:id/issues \
 ## Common Flags
 
 ```bash
---help, -h                         # Show help
 --repo, -R owner/repo              # Specify repository
 --web, -w                          # Open in browser
 --output, -o json                  # JSON output
@@ -168,10 +167,9 @@ glab config set key value          # Set config value
 
 ## Tips
 
-1. Use the known command patterns first; run `glab <command> --help` only when a reference is missing, a command is rare or destructive, or a flag fails
+1. Use the known command patterns first; do not run help as preflight
 2. Commands auto-detect repository context from git remote
 3. Use `-R owner/repo` when outside a repository
 4. Most commands have `--web` flag to open in browser
 5. Use `--output=json` for scripting
-6. Enable completion: `glab completion --shell bash`
-7. If you hit `unknown flag`, stop and re-check `glab <command> --help` instead of guessing another flag
+6. If a flag fails, inspect that exact subcommand help once instead of guessing adjacent flags
