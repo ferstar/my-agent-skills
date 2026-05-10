@@ -21,15 +21,15 @@ Design goals:
 - make command selection obvious in `SKILL.md`
 - preserve structured output paths for downstream automation
 
-### `wechat-article-extractor`
+### `rapidocr`
 
-Extract title, author, publish time, description, cover image, and HTML content from WeChat Official Account article links (`mp.weixin.qq.com`).
+Use RapidOCR to extract text from local images, return structured JSON, flag low-confidence or amount-like OCR lines for review, and optionally reconstruct a heuristic Markdown table.
 
 Design goals:
-- keep the skill narrow and easy to maintain
-- prefer modern, minimal dependencies
-- optimize for the common case: fetch an article, extract readable content, summarize it
-- protect behavior with smoke tests during refactors
+- keep OCR execution local and file-only
+- install Python tool dependencies with `uv tool`
+- expose review hints for prices, quantities, and low-confidence text
+- keep table reconstruction explicitly heuristic
 
 ### `glab`
 

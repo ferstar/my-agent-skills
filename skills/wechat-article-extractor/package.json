@@ -1,7 +1,0 @@
-{
-  "name": "wechat-article-extractor",
-  "dependencies": {
-    "cheerio": "^1.2.0",
-    "dayjs": "^1.11.19"
-  }
-}
