@@ -163,6 +163,58 @@ glab api --method PUT "projects/namespace%2Fproject/issues/123" \
 
 **Only Task type can be a child of an Issue.** Regular issues cannot have parent-child relationships.
 
+For issue-board-driven workflows, prefer a plain `Issue` as the unit that moves across columns. `Task` is best used as a child work item under an issue, not as the primary board card.
+
+If a child task must become a board-tracked item, convert it to an issue and keep the relationship as a normal linked item:
+
+1. Remove the parent hierarchy link from the task.
+2. Convert the task to `Issue`.
+3. Add a `relates_to` link back to the parent issue.
+
+Example:
+
+```bash
+# IDs are global work item IDs
+TASK_ID="gid://gitlab/WorkItem/1582"
+PARENT_ID="gid://gitlab/WorkItem/1552"
+ISSUE_TYPE_ID="gid://gitlab/WorkItems::Type/1"
+
+# 1. Detach from parent
+glab api graphql -f query="
+mutation {
+  workItemUpdate(input: {
+    id: \"$TASK_ID\"
+    hierarchyWidget: { parentId: null }
+  }) {
+    errors
+  }
+}"
+
+# 2. Convert Task -> Issue
+glab api graphql -f query="
+mutation {
+  workItemConvert(input: {
+    id: \"$TASK_ID\"
+    workItemTypeId: \"$ISSUE_TYPE_ID\"
+  }) {
+    errors
+    workItem { iid workItemType { name } }
+  }
+}"
+
+# 3. Keep the parent relationship as a normal linked item
+glab api graphql -f query="
+mutation {
+  workItemAddLinkedItems(input: {
+    id: \"$TASK_ID\"
+    linkType: RELATED
+    workItemsIds: [\"$PARENT_ID\"]
+  }) {
+    errors
+  }
+}"
+```
+
 ### Method 1: REST API (create Task, then link)
 
 ```bash

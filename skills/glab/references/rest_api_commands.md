@@ -27,6 +27,47 @@ glab api --method POST "projects/<namespace>%2F<project>/issues/163/discussions/
 
 Avoid assuming REST paths such as `projects/<namespace>%2F<project>/work_items/163/notes` exist. On many GitLab instances they return `404 Not Found` even when the UI URL uses `work_items`.
 
+## Task to Issue Conversion for Board Workflows
+
+When a child `Task` needs to move through an issue board, convert it to a plain `Issue` first and keep the parent relationship as a normal linked item. The converted item usually keeps the same IID; only the work item type changes.
+
+```bash
+# 1. Remove the parent hierarchy link
+glab api graphql -f query="
+mutation {
+  workItemUpdate(input: {
+    id: \"gid://gitlab/WorkItem/1582\"
+    hierarchyWidget: { parentId: null }
+  }) {
+    errors
+  }
+}"
+
+# 2. Convert the task to an issue
+glab api graphql -f query="
+mutation {
+  workItemConvert(input: {
+    id: \"gid://gitlab/WorkItem/1582\"
+    workItemTypeId: \"gid://gitlab/WorkItems::Type/1\"
+  }) {
+    errors
+    workItem { iid workItemType { name } }
+  }
+}"
+
+# 3. Reconnect it with the parent issue as a normal related link
+glab api graphql -f query="
+mutation {
+  workItemAddLinkedItems(input: {
+    id: \"gid://gitlab/WorkItem/1582\"
+    linkType: RELATED
+    workItemsIds: [\"gid://gitlab/WorkItem/1552\"]
+  }) {
+    errors
+  }
+}"
+```
+
 ## Merge Requests (MR)
 
 ### Listing Merge Requests
