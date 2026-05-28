@@ -16,6 +16,18 @@ from typing import Any
 API_BASE = "https://api.exa.ai"
 
 
+def configure_stdio() -> None:
+    """Prefer UTF-8 console output so Windows shells do not choke on results."""
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            try:
+                reconfigure(encoding="utf-8", errors="backslashreplace")
+            except ValueError:
+                pass
+
+
 def load_api_key() -> str:
     """Load Exa API key from environment or config file."""
     key = os.environ.get("EXA_API_KEY", "").strip()
@@ -63,6 +75,24 @@ def trim(text: str, limit: int = 300) -> str:
     return text[: limit - 1].rstrip() + "…"
 
 
+def apply_search_filters(
+    payload: dict[str, Any],
+    args: argparse.Namespace,
+    *,
+    include_dates: bool = False,
+) -> None:
+    """Apply common search filters shared by search-based commands."""
+    if getattr(args, "include_domains", None):
+        payload["includeDomains"] = args.include_domains
+    if getattr(args, "exclude_domains", None):
+        payload["excludeDomains"] = args.exclude_domains
+    if include_dates:
+        if getattr(args, "start_published_date", ""):
+            payload["startPublishedDate"] = args.start_published_date
+        if getattr(args, "end_published_date", ""):
+            payload["endPublishedDate"] = args.end_published_date
+
+
 def summarize_search_results(results: list[dict[str, Any]]) -> str:
     """Generate human-readable summary of search results."""
     if not results:
@@ -91,18 +121,30 @@ def summarize_search_results(results: list[dict[str, Any]]) -> str:
 
 
 def command_web_search(args: argparse.Namespace) -> dict[str, Any]:
+    if args.max_age_hours is not None and args.livecrawl:
+        raise SystemExit(
+            "Cannot use --livecrawl with --maxAgeHours. Prefer --maxAgeHours."
+        )
+
+    contents: dict[str, Any] = {
+        "text": {
+            "maxCharacters": args.context_max_characters,
+        }
+    }
+    if args.livecrawl:
+        contents["livecrawl"] = args.livecrawl
+    if args.livecrawl_timeout is not None:
+        contents["livecrawlTimeout"] = args.livecrawl_timeout
+    if args.max_age_hours is not None:
+        contents["maxAgeHours"] = args.max_age_hours
+
     payload: dict[str, Any] = {
         "query": args.query,
         "type": args.search_type,
         "numResults": args.num_results,
-        "contents": {
-            "text": {
-                "maxCharacters": args.context_max_characters,
-            }
-        },
+        "contents": contents,
     }
-    if args.livecrawl:
-        payload["livecrawl"] = args.livecrawl
+    apply_search_filters(payload, args, include_dates=True)
     response = exa_post("/search", payload)
     results = response.get("results", [])
     text_blocks: list[str] = []
@@ -116,7 +158,11 @@ def command_web_search(args: argparse.Namespace) -> dict[str, Any]:
         "query": args.query,
         "type": args.search_type,
         "livecrawl": args.livecrawl,
+        "livecrawlTimeout": args.livecrawl_timeout,
+        "maxAgeHours": args.max_age_hours,
         "numResults": args.num_results,
+        "includeDomains": args.include_domains,
+        "excludeDomains": args.exclude_domains,
         "contextMaxCharacters": args.context_max_characters,
         "results": results,
         "content": "\n\n".join(text_blocks),
@@ -147,6 +193,16 @@ def command_code_context(args: argparse.Namespace) -> dict[str, Any]:
             "query": args.query,
             "numResults": 5,
             "type": "auto",
+            **(
+                {"includeDomains": args.include_domains}
+                if args.include_domains
+                else {}
+            ),
+            **(
+                {"excludeDomains": args.exclude_domains}
+                if args.exclude_domains
+                else {}
+            ),
             "contents": {"text": {"maxCharacters": 1200}},
         },
     )
@@ -164,8 +220,27 @@ def command_code_context(args: argparse.Namespace) -> dict[str, Any]:
         "tokensNum": args.tokens_num,
         "source": "search_fallback",
         "context": "\n\n".join(snippets),
+        "includeDomains": args.include_domains,
+        "excludeDomains": args.exclude_domains,
         "results": results,
     }
+
+
+def command_answer(args: argparse.Namespace) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "query": args.query,
+        "text": args.text,
+    }
+    if args.include_domains:
+        payload["includeDomains"] = args.include_domains
+    if args.exclude_domains:
+        payload["excludeDomains"] = args.exclude_domains
+    response = exa_post("/answer", payload)
+    response["query"] = args.query
+    response["text"] = args.text
+    response["includeDomains"] = args.include_domains
+    response["excludeDomains"] = args.exclude_domains
+    return response
 
 
 def command_company_research(args: argparse.Namespace) -> dict[str, Any]:
@@ -188,6 +263,22 @@ def print_human_readable(command: str, payload: dict[str, Any]) -> None:
         print(payload.get("content", "").strip())
     elif command == "code-context":
         print(payload.get("context", "").strip())
+    elif command == "answer":
+        answer = str(payload.get("answer", "")).strip()
+        citations = payload.get("citations", [])
+        print(answer)
+        if citations:
+            print("\nSources:")
+            for idx, item in enumerate(citations, start=1):
+                title = item.get("title") or item.get("url") or f"Result {idx}"
+                url = item.get("url", "")
+                published = item.get("publishedDate") or item.get("published_date") or ""
+                header = f"{idx}. {title}"
+                if published:
+                    header += f" [{published}]"
+                print(header)
+                if url:
+                    print(url)
     elif command == "company-research":
         print(json.dumps(payload, ensure_ascii=False, indent=2))
 
@@ -206,7 +297,13 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=10000,
     )
-    web_search.add_argument("--livecrawl", choices=["fallback", "preferred", "always", "never"], default="fallback")
+    web_search.add_argument("--livecrawl", choices=["fallback", "preferred", "always", "never"], default="")
+    web_search.add_argument("--livecrawl-timeout", "--livecrawlTimeout", dest="livecrawl_timeout", type=int)
+    web_search.add_argument("--max-age-hours", "--maxAgeHours", dest="max_age_hours", type=int)
+    web_search.add_argument("--include-domain", dest="include_domains", action="append", default=[])
+    web_search.add_argument("--exclude-domain", dest="exclude_domains", action="append", default=[])
+    web_search.add_argument("--start-published-date", dest="start_published_date", default="")
+    web_search.add_argument("--end-published-date", dest="end_published_date", default="")
     web_search.add_argument(
         "--type",
         dest="search_type",
@@ -219,7 +316,16 @@ def build_parser() -> argparse.ArgumentParser:
     code_context.add_argument("--query", required=True)
     code_context.add_argument("--tokens", "--tokens-num", "--tokensNum", dest="tokens_num", type=int, default=5000)
     code_context.add_argument("--livecrawl", choices=["fallback", "preferred", "always", "never"], default="")
+    code_context.add_argument("--include-domain", dest="include_domains", action="append", default=[])
+    code_context.add_argument("--exclude-domain", dest="exclude_domains", action="append", default=[])
     code_context.add_argument("--json", action="store_true")
+
+    answer = subparsers.add_parser("answer", help="Get a synthesized answer with citations")
+    answer.add_argument("--query", required=True)
+    answer.add_argument("--include-domain", dest="include_domains", action="append", default=[])
+    answer.add_argument("--exclude-domain", dest="exclude_domains", action="append", default=[])
+    answer.add_argument("--text", action="store_true")
+    answer.add_argument("--json", action="store_true")
 
     company = subparsers.add_parser("company-research", help="Research a company")
     company.add_argument("--company", "--company-name", "--companyName", dest="company", required=True)
@@ -230,6 +336,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
+    configure_stdio()
     parser = build_parser()
     args = parser.parse_args()
 
@@ -237,6 +344,8 @@ def main() -> None:
         payload = command_web_search(args)
     elif args.command == "code-context":
         payload = command_code_context(args)
+    elif args.command == "answer":
+        payload = command_answer(args)
     elif args.command == "company-research":
         payload = command_company_research(args)
     else:

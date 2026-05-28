@@ -9,6 +9,12 @@ user-invocable: true
 
 Use the bundled Python wrapper to call Exa directly from the local skill directory.
 
+## Runtime
+
+- Always invoke the script with `uv run`.
+- Do not call `python` directly and do not rely on the shebang entrypoint.
+- `uv` keeps invocation consistent while still allowing the environment to provide the interpreter.
+
 ## Use this skill when
 
 - The task needs live web research and the model should query Exa directly.
@@ -25,50 +31,93 @@ Use the bundled Python wrapper to call Exa directly from the local skill directo
 ## Workflow
 
 1. Confirm an Exa API key is available from `EXA_API_KEY` or `~/.config/exa/api_key`.
-2. Pick the narrowest command that matches the request.
-3. Run `scripts/exa_search.py` from this skill directory.
-4. Summarize the result for the user with links, dates when available, and any obvious gaps or freshness limits.
+2. Confirm `uv` is available in the current shell.
+3. Pick the narrowest command that matches the request.
+4. Run `uv run "$SKILL_DIR/scripts/exa_search.py" ...` from this skill directory.
+5. Summarize the result for the user with links, dates when available, and any obvious gaps or freshness limits.
 
 ## Command selection
+
+### Priority for code development
+
+For coding tasks, prefer commands in this order:
+
+1. `code-context`: default for API docs, code examples, library usage, migration notes, and implementation context.
+2. `web-search`: use when you need broader source coverage, freshness controls, domain filters, or product/news pages.
+3. `answer`: use only when the user explicitly wants a synthesized answer, comparison, or concise summary with citations after source grounding.
+
+Do not default to `answer` for code development when the user likely needs raw docs, exact parameters, or copyable examples.
 
 ### `web-search`
 
 Use for live web results, news, product pages, docs pages, and general external research.
 
 ```bash
-$SKILL_DIR/scripts/exa_search.py web-search --query "<query>"
+uv run "$SKILL_DIR/scripts/exa_search.py" \
+  web-search --query "<query>"
 ```
 
 Useful options:
 
 - `--numResults` or `--num-results`: default `8`
 - `--contextMaxCharacters` or `--context-max-characters`: default `10000`
-- `--livecrawl`: `fallback`, `preferred`, `always`, `never`
+- `--include-domain`: repeatable domain allowlist for source quality control
+- `--exclude-domain`: repeatable domain denylist
+- `--maxAgeHours` or `--max-age-hours`: content freshness target in hours
+- `--livecrawl`: compatibility option for deprecated Exa livecrawl modes
+- `--livecrawlTimeout` or `--livecrawl-timeout`: crawl timeout in milliseconds
+- `--start-published-date` / `--end-published-date`: limit results by publication date
 - `--type`: `auto`, `fast`, `neural`, `deep`, `deep-reasoning`, `instant`
 - `--json`: emit structured JSON instead of plain text
+
+Prefer `--maxAgeHours` for freshness control. Do not combine it with `--livecrawl`.
 
 ### `code-context`
 
 Use for technical lookups when the user needs code snippets, API docs, or implementation context.
 
 ```bash
-$SKILL_DIR/scripts/exa_search.py code-context --query "<query>"
+uv run "$SKILL_DIR/scripts/exa_search.py" \
+  code-context --query "<query>"
 ```
 
 Useful options:
 
 - `--tokens`, `--tokens-num`, or `--tokensNum`: default `5000`
+- `--include-domain`: repeatable domain allowlist for focused technical sources
+- `--exclude-domain`: repeatable domain denylist
 - `--livecrawl`: `fallback`, `preferred`, `always`, `never`
 - `--json`: emit structured JSON instead of plain text
 
 Note: this command falls back to Exa search if the context endpoint returns no content.
+
+### `answer`
+
+Use for direct answers or concise summaries when the user wants Exa to return a synthesized answer with citations.
+
+For code development, treat this as a secondary command. Prefer `code-context` or `web-search` first unless the user is clearly asking for synthesis, comparison, or a short cited summary.
+
+```bash
+uv run "$SKILL_DIR/scripts/exa_search.py" \
+  answer --query "<query>"
+```
+
+Useful options:
+
+- `--include-domain`: repeatable domain allowlist for answer grounding
+- `--exclude-domain`: repeatable domain denylist
+- `--text`: include full text in returned citations
+- `--json`: emit structured JSON instead of plain text
+
+`--include-domain` / `--exclude-domain` accept domain filters, path-specific filters such as `docs.exa.ai/reference`, and subdomain wildcards such as `*.github.com`.
 
 ### `company-research`
 
 Use for company overview, positioning, and background gathering.
 
 ```bash
-$SKILL_DIR/scripts/exa_search.py company-research --companyName "<company>"
+uv run "$SKILL_DIR/scripts/exa_search.py" \
+  company-research --companyName "<company>"
 ```
 
 Useful options:
@@ -87,20 +136,31 @@ Useful options:
 ## Examples
 
 ```bash
-$SKILL_DIR/scripts/exa_search.py web-search \
+uv run "$SKILL_DIR/scripts/exa_search.py" \
+  web-search \
   --query "OpenAI Responses API background mode" \
   --numResults 5 \
   --contextMaxCharacters 4000
 ```
 
 ```bash
-$SKILL_DIR/scripts/exa_search.py code-context \
+uv run "$SKILL_DIR/scripts/exa_search.py" \
+  code-context \
   --query "FastAPI streaming response example" \
   --tokensNum 4000
 ```
 
 ```bash
-$SKILL_DIR/scripts/exa_search.py company-research \
+uv run "$SKILL_DIR/scripts/exa_search.py" \
+  answer \
+  --query "What changed in the latest Exa Python SDK release?" \
+  --include-domain docs.exa.ai \
+  --text
+```
+
+```bash
+uv run "$SKILL_DIR/scripts/exa_search.py" \
+  company-research \
   --companyName "Exa AI" \
   --numResults 6 \
   --json
