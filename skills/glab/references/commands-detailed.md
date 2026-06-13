@@ -35,6 +35,9 @@ glab mr create --related-issue 123
 # Auto-close an issue on merge: keep the closing keyword in the description body
 glab mr create --title "Fix bug" --description "Closes #123"
 
+# Create MR from an explicit source branch to a target branch
+glab mr create --source-branch=my-branch --target-branch=main --title "Fix bug" --description "$(cat /tmp/mr.md)"
+
 # Create draft MR
 glab mr create --draft
 
@@ -52,6 +55,10 @@ glab mr create --target-branch=develop
 
 # Create MR and remove source branch after merge
 glab mr create --remove-source-branch
+
+# Do not use unsupported MR create flags from other CLIs or old transcripts
+# Wrong: glab mr create --source my-branch --target main
+# Wrong: glab mr create --description-file /tmp/mr.md
 ```
 
 ### Viewing and Interacting with MRs
@@ -204,6 +211,7 @@ glab ci list
 
 # Filter pipelines by ref / branch name
 glab ci list --ref=main
+glab ci list --ref=main --per-page=5
 
 # List pipelines with specific status
 glab ci list --status=failed
@@ -218,6 +226,7 @@ glab ci status --branch=main
 
 # Do not guess ci list flags from ci status flags
 # Wrong: glab ci list --branch=main
+# Wrong: glab ci list --limit=5
 
 # Get pipeline trace/logs
 glab ci trace

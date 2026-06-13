@@ -57,7 +57,8 @@ glab issue list --closed           # Closed issues
 glab issue list --assignee=@me     # Assigned to me
 glab issue list --label=bug        # With label
 
-# `--opened` still appears in 1.91.0 examples, and it is legacy usage.
+# `--opened` still appears in examples but prints a deprecation warning into stdout;
+# omit it for open issues, especially when using `--output json`.
 
 # Creating & Managing
 glab issue create                  # Interactive
@@ -78,8 +79,11 @@ After MR auto-close:
 glab ci view                       # Watch pipeline
 glab ci list                       # List pipelines
 glab ci list --ref main            # List pipelines for a ref / branch
+glab ci list --ref main --per-page 5
 glab ci status                     # Pipeline status
 glab ci trace                      # View logs
+
+# Wrong for `ci list`: --branch, --limit
 
 # Running & Managing
 glab ci run                        # Trigger pipeline

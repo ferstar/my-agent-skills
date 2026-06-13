@@ -62,14 +62,21 @@ sudo apt update && sudo apt upgrade glab
 
 ### Unknown Flag Errors
 
-**Error:**
+**Errors:**
 ```
 Unknown flag: --state
+Unknown flag: --source
+Unknown flag: --description-file
+Unknown flag: --branch
+Unknown flag: --limit
 ```
 
 **Cause:**
 - glab version differences; some commands do not support the same flags across versions.
-- Example: `glab issue list` supports default-open / `--closed` / `--all`, but not `--state`.
+- Example: `glab issue list` supports default-open / `--closed` / `--all`, but not `--state`; `--opened` is deprecated and can contaminate stdout for JSON consumers.
+- Example: `glab mr create` uses `--source-branch` / `--target-branch`, not `--source` / `--target`.
+- Example: `glab mr create` accepts `--description`, but not `--description-file` in the verified local CLI.
+- Example: `glab ci list` uses `--ref` and `--per-page`, not `--branch` or `--limit`.
 
 **Solutions:**
 1. Use supported flags for issue listing:
@@ -78,8 +85,36 @@ Unknown flag: --state
    glab issue list --closed
    glab issue list --all
    ```
-2. Avoid copying flag usage between commands (`mr list` and `issue list` are not always symmetric).
-3. If a different flag still fails, inspect that exact subcommand help once before retrying.
+2. Use supported flags for MR creation and CI listing:
+   ```bash
+   glab mr create --source-branch my-branch --target-branch main \
+     --title "Fix" --description "$(cat /tmp/mr.md)"
+   glab ci list --ref my-branch --per-page 5
+   ```
+3. Avoid copying flag usage between commands (`mr list`, `issue list`, `ci status`, and `ci list` are not symmetric).
+4. If a different flag still fails, inspect that exact subcommand help once before retrying.
+
+### `glab mr create` warns about target branch rules
+
+**Symptom:**
+```text
+warning: failed to fetch target branch rules: 404 Not Found
+
+Creating merge request for my-branch into main in owner/repo
+
+https://gitlab.example.com/owner/repo/-/merge_requests/123
+```
+
+**Meaning:**
+- In the verified local GitLab environment, this warning can be non-fatal. The MR can still be created successfully.
+
+**What to do:**
+1. Do not retry with guessed flags just to remove the warning.
+2. Verify the created MR:
+   ```bash
+   glab mr view 123
+   glab api "projects/<namespace>%2F<project>/merge_requests/123" | jq '{iid,state,draft,target_branch,source_branch}'
+   ```
 
 ### `glab mr create --related-issue` produced an unexpected Draft MR or duplicated `Closes #...`
 
