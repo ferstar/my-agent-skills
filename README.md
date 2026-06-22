@@ -81,3 +81,11 @@ Diagnose SSH, Tailscale, PATH, service, lock, and remote Codex issues.
 - Avoid committing `node_modules`, caches, or temporary outputs
 - Prefer standard library and small dependency sets over legacy packages
 - Run every new or imported skill through `skill-creator` conventions before treating it as done
+
+## Local install
+
+```bash
+scripts/link-user-skills.sh
+```
+
+This links repo skills into `~/.agents/skills`. Use `--force` only when replacing an existing local copy is intentional.
