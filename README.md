@@ -49,6 +49,30 @@ Design goals:
 - keep the skill scoped to read-only, browser-backed web tasks
 - document strict URL validation and bridge prerequisites
 
+### `agent-preflight`
+
+Minimal repo and environment preflight before non-trivial Codex work.
+
+### `gitlab-mr-context`
+
+Reliable GitLab issue/MR/pipeline/comment context gathering with `glab api`.
+
+### `ci-first-failure`
+
+Find the first real failing GitHub Actions or GitLab CI job before editing.
+
+### `path-verify`
+
+Choose the smallest useful validation command from changed file paths.
+
+### `release-deploy-preflight`
+
+Preflight release, deploy, artifact, and desktop packaging workflows.
+
+### `remote-health`
+
+Diagnose SSH, Tailscale, PATH, service, lock, and remote Codex issues.
+
 ## Conventions
 
 - Keep each skill focused on one job
