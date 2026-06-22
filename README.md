@@ -53,6 +53,10 @@ Design goals:
 
 Minimal repo and environment preflight before non-trivial Codex work.
 
+### `codex-ship-loop`
+
+Ship verified Codex code changes through PR/MR, remote merge, and local cleanup.
+
 ### `gitlab-mr-context`
 
 Reliable GitLab issue/MR/pipeline/comment context gathering with `glab api`.

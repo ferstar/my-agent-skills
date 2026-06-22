@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Ship Loop"
+  short_description: "PR/MR ship loop and cleanup"
+  default_prompt: "Use $codex-ship-loop to verify, push, merge, and clean up this Codex change."
