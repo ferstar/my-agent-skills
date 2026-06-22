@@ -88,4 +88,8 @@ Diagnose SSH, Tailscale, PATH, service, lock, and remote Codex issues.
 scripts/link-user-skills.sh
 ```
 
-This links repo skills into `~/.agents/skills`. Use `--force` only when replacing an existing local copy is intentional.
+```powershell
+.\scripts\link-user-skills.ps1
+```
+
+This links repo skills into `~/.agents/skills`. Use `--force` / `-Force` only when replacing an existing local copy is intentional.
