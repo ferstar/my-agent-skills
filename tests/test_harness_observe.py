@@ -1,9 +1,11 @@
 import importlib.util
 import json
+import os
 import tempfile
 import unittest
 import uuid
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +42,27 @@ def event(**overrides):
 
 
 class HarnessObserveTests(unittest.TestCase):
+    def test_default_log_is_colocated_with_codex_home(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            with mock.patch.dict(
+                os.environ,
+                {"CODEX_HOME": temp},
+                clear=False,
+            ):
+                os.environ.pop("HARNESS_OBSERVABILITY_LOG", None)
+                self.assertEqual(
+                    HARNESS.default_log_path(),
+                    Path(temp) / "harness-observe" / "events.jsonl",
+                )
+
+            explicit = Path(temp) / "custom.jsonl"
+            with mock.patch.dict(
+                os.environ,
+                {"HARNESS_OBSERVABILITY_LOG": str(explicit)},
+                clear=False,
+            ):
+                self.assertEqual(HARNESS.default_log_path(), explicit)
+
     def test_privacy_boundary_rejects_unknown_content_fields(self) -> None:
         for field in ("prompt", "response", "command", "path", "url", "tool_result"):
             with self.subTest(field=field), self.assertRaises(HARNESS.EventError):

@@ -43,7 +43,10 @@ and semantic outcome evaluation separate.
 ## Commands
 
 The standard-library CLI resolves its default log from
-`HARNESS_OBSERVABILITY_LOG`, then the platform state directory.
+`HARNESS_OBSERVABILITY_LOG`, then
+`$CODEX_HOME/harness-observe/events.jsonl`, falling back to
+`~/.codex/harness-observe/events.jsonl`. This keeps Codex hook configuration
+and its local observation state under one control-plane directory.
 
 ```bash
 python3 scripts/harness_observe.py doctor

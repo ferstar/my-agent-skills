@@ -124,9 +124,11 @@ python3 <skill-dir>/scripts/harness_observe.py record \
   --duration-ms 42000
 ```
 
-The default source path is resolved from `HARNESS_OBSERVABILITY_LOG`, then the
-platform's user state directory. Use `--log` before the subcommand to override
-it.
+The default source path is resolved from `HARNESS_OBSERVABILITY_LOG`, then
+`$CODEX_HOME/harness-observe/events.jsonl`, and finally
+`~/.codex/harness-observe/events.jsonl`. This keeps hook configuration and
+observation state in one Codex control-plane directory. Use `--log` before the
+subcommand to override it.
 
 ### 3. Validate and summarize
 

@@ -92,15 +92,9 @@ def default_log_path() -> Path:
     configured = os.environ.get("HARNESS_OBSERVABILITY_LOG")
     if configured:
         return Path(configured).expanduser()
-    state_home = os.environ.get("XDG_STATE_HOME")
-    if state_home:
-        return Path(state_home) / "harness-observe" / "events.jsonl"
-    local_app_data = os.environ.get("LOCALAPPDATA")
-    if os.name == "nt" and local_app_data:
-        return Path(local_app_data) / "harness-observe" / "events.jsonl"
-    if sys.platform == "darwin":
-        return Path.home() / "Library" / "Application Support" / "harness-observe" / "events.jsonl"
-    return Path.home() / ".local" / "state" / "harness-observe" / "events.jsonl"
+    codex_home = os.environ.get("CODEX_HOME")
+    root = Path(codex_home).expanduser() if codex_home else Path.home() / ".codex"
+    return root / "harness-observe" / "events.jsonl"
 
 
 def parse_bool(value: str) -> bool:

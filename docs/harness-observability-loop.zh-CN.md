@@ -113,8 +113,10 @@ python3 <skill-dir>/scripts/harness_observe.py record \
   --duration-ms 42000
 ```
 
-默认日志路径依次读取 `HARNESS_OBSERVABILITY_LOG` 和操作系统用户状态目录。
-需要替换时，在子命令前传入 `--log`。
+默认日志路径依次读取 `HARNESS_OBSERVABILITY_LOG`、
+`$CODEX_HOME/harness-observe/events.jsonl`，最后回退到
+`~/.codex/harness-observe/events.jsonl`。这样 hook 配置与观测状态统一收敛在 Codex
+控制面目录下。需要替换时，在子命令前传入 `--log`。
 
 ### 3. 校验与汇总
 
