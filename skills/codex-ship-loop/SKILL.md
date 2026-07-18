@@ -39,14 +39,19 @@ Maintain the same compact checkpoint used by preflight:
 phase: DISCOVER | DECIDE | IMPLEMENT | VERIFY | SHIP | DONE
 objective: <current intended outcome>
 scope: <repo, branch, issue/PR/MR, environment>
-authority: <read-only, edit, push, merge, deploy, cleanup>
+authority: <read-only, edit, push, merge, deploy, workflow-state, publish, cleanup>
 evidence: <commands, URLs, exact SHA, results>
 changes: <paths or external mutations>
+verification: <checks and final-object readbacks>
+terminal_state: <observable completion conditions>
 next: <single next action or blocker>
 drift_facts: <facts that must be refreshed on resume>
 ```
 
-Advance through `DISCOVER -> DECIDE -> IMPLEMENT -> VERIFY -> SHIP -> DONE`, skipping phases that do not apply. A handoff includes the checkpoint, not a transcript recap. On resume, preserve stable implementation evidence and refresh only drift-prone facts: dirty state, branch/default-branch heads, PR/MR head SHA, discussions, CI, mergeability, permissions, workflow inputs, deployed health, and remote SHA.
+Advance through `DISCOVER -> DECIDE -> IMPLEMENT -> VERIFY -> SHIP -> DONE`, skipping phases that do not apply. A handoff includes the checkpoint, not a transcript recap. On resume, preserve stable implementation evidence and refresh only drift-prone facts: dirty state, branch/default-branch heads, PR/MR head SHA, discussions, CI, mergeability, permissions, workflow inputs, deployed health, and remote SHA. Do not report `DONE` until `terminal_state` has been verified.
+
+Use the progressive authority and terminal-state contract in
+[`docs/prompt-workflow-contract.md`](../../docs/prompt-workflow-contract.md).
 
 ## Default Loop
 
@@ -60,19 +65,26 @@ Advance through `DISCOVER -> DECIDE -> IMPLEMENT -> VERIFY -> SHIP -> DONE`, ski
 8. Merge remotely only when explicitly authorized by the user. A request to open or update a PR/MR is not merge authority.
 9. Switch back to updated `main` or the repo's default branch.
 10. Delete only merged local topic branches, and only when cleanup was requested or is explicit in the stated end-to-end outcome.
-11. Report verification, PR/MR link, merge state, cleanup, and any leftovers.
+11. Read back each mutated remote object: pushed ref, PR/MR, issue/task state,
+    deployment, publication, or deleted branch as applicable.
+12. Verify the requested terminal state, then report verification, PR/MR link,
+    merge state, workflow-state handoff, cleanup, and any leftovers.
 
 ## Guardrails
 
 - Prefer remote PR/MR merge over local `main` merges unless the user explicitly asks for a local merge.
 - Treat review-only as read-only: do not edit, push, merge, deploy, relabel, close, or clean up.
 - Merge authority does not imply deploy authority. Deploy authority does not imply issue closure or branch cleanup.
+- Push does not imply merge. Merge does not imply workflow-state mutation,
+  publishing, deployment, or cleanup. Treat each as separate authority.
 - After merge, derive issue state from the requested workflow: an issue may intentionally remain open with a verification/testing label. Avoid auto-close syntax unless closure is intended.
 - Do not delete remote branches unless explicitly requested or the merge command's source-branch removal is clearly part of the platform flow.
 - Do not touch unrelated untracked files, planning docs, assets, or dirty worktree changes.
 - Do not create Windows worktrees by default; use the current checkout and stash only when necessary.
 - Do not broaden validation just because a broad command exists. Broaden for security boundaries, shared protocols, release, deploy, or CI reproduction.
 - Do not turn project memories into facts without checking live state when remotes, versions, CI, releases, or permissions may have changed.
+- A local command succeeding is not sufficient proof of remote completion; read
+  the final remote object and bind the result to its exact SHA or identifier.
 
 ## Output
 

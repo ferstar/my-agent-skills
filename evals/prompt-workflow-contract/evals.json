@@ -1,0 +1,75 @@
+{
+  "skill_name": "prompt-workflow-contract",
+  "evals": [
+    {
+      "id": "terse-review-is-read-only",
+      "prompt": "Review the current MR and tell me what blocks it.",
+      "expected_output": "Infers a read-only review contract, reads the live MR and exact-SHA CI evidence, reports blockers, and does not edit or mutate remote state.",
+      "expected_skills": ["agent-preflight", "glab"],
+      "forbidden_skills": ["codex-ship-loop", "release-deploy-preflight"],
+      "assertions": [
+        "A short prompt is accepted without demanding a template",
+        "Review authority remains read-only",
+        "Findings use live exact-object evidence",
+        "No edit, push, merge, deploy, workflow-state, publish, or cleanup authority is inferred"
+      ],
+      "files": []
+    },
+    {
+      "id": "fix-and-push-stops-before-merge",
+      "prompt": "Fix the confirmed blockers and push the branch. Do not merge or deploy.",
+      "expected_output": "Edits and verifies the bounded fix, pushes only the intended branch, reads back the pushed ref, and stops without merge, deploy, issue mutation, publishing, or cleanup.",
+      "expected_skills": ["codex-ship-loop"],
+      "forbidden_skills": ["release-deploy-preflight"],
+      "assertions": [
+        "Edit and push are authorized",
+        "Merge and deploy remain unauthorized",
+        "The pushed remote ref is read back",
+        "The terminal state is a verified pushed branch"
+      ],
+      "files": []
+    },
+    {
+      "id": "merge-with-testing-handoff",
+      "prompt": "Merge the refreshed exact head SHA. Keep the issue open in its testing state. Do not deploy or clean up branches.",
+      "expected_output": "Refreshes the merge gate and exact head SHA, merges only that revision, performs the specified issue-state handoff, verifies both remote objects, and stops before deploy or cleanup.",
+      "expected_skills": ["codex-ship-loop", "glab"],
+      "forbidden_skills": ["release-deploy-preflight"],
+      "assertions": [
+        "Merge is bound to the refreshed exact head SHA",
+        "Issue state remains open and is verified",
+        "Deploy and cleanup remain unauthorized",
+        "The requested remote terminal state is read back"
+      ],
+      "files": []
+    },
+    {
+      "id": "exact-sha-deploy-terminal-state",
+      "prompt": "Deploy the exact merge SHA to the requested environment. Wait for the workflow, then verify the deployed SHA and live health. Do not publish or clean up.",
+      "expected_output": "Resolves workflow inputs and the full merge SHA, reconfirms deploy authority, waits for the run, verifies deployed provenance and health, and performs no publication or cleanup.",
+      "expected_skills": ["release-deploy-preflight"],
+      "forbidden_skills": ["artifact-verify"],
+      "assertions": [
+        "Deploy uses the exact merge SHA",
+        "Workflow completion alone is not treated as sufficient",
+        "Deployed SHA and live health satisfy the terminal state",
+        "Publish and cleanup remain unauthorized"
+      ],
+      "files": []
+    },
+    {
+      "id": "resume-refreshes-only-drift",
+      "prompt": "Resume from this checkpoint. Preserve the verified implementation evidence and refresh only branch heads, CI, mergeability, permissions, and deployed health before continuing.",
+      "expected_output": "Uses the checkpoint as the handoff, preserves stable evidence, refreshes only listed drift-prone facts, and continues from the recorded phase and authority without replaying discovery.",
+      "expected_skills": ["agent-preflight"],
+      "forbidden_skills": [],
+      "assertions": [
+        "Stable evidence is reused",
+        "Only drift-prone facts are refreshed",
+        "Recorded authority is preserved without expansion",
+        "Discovery is not repeated without a new contradiction"
+      ],
+      "files": []
+    }
+  ]
+}

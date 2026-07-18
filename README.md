@@ -1,5 +1,7 @@
 # my-agent-skills
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 Public repository of custom Agent Skills.
 
 ## Structure
@@ -8,6 +10,29 @@ Public repository of custom Agent Skills.
 - each skill contains a required `SKILL.md`
 - optional resources: `scripts/`, `references/`, `assets/`
 - repository-level smoke tests live in `tests/`
+
+## Prompt workflow methodology
+
+Use short prompts for ordinary work. Add structure only when it prevents a real
+mistake:
+
+```text
+objective + evidence + scope + authority + terminal_state
+```
+
+Work progresses through the smallest applicable path:
+
+```text
+DISCOVER -> DECIDE -> IMPLEMENT -> VERIFY -> SHIP -> DONE
+```
+
+Authority is not transitive. Treat `read-only`, `edit`, `push`, `merge`,
+`deploy`, `workflow-state`, `publish`, and `cleanup` as separate grants. Long or
+resumed work uses a compact checkpoint, reuses stable evidence, and refreshes
+only drift-prone facts. A task reaches `DONE` only after its local and remote
+terminal state has been read back and verified.
+
+See the complete [prompt workflow contract](docs/prompt-workflow-contract.md).
 
 ## Current skills
 

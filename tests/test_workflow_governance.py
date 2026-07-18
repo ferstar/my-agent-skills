@@ -36,7 +36,12 @@ class WorkflowGovernanceTests(unittest.TestCase):
             "Windows user absolute path": re.compile(r"C:\\Users\\(?!<username>)[^\\<\s]+", re.IGNORECASE),
             "product-specific defaults section": re.compile(r"^##\s+[^\n]+\s+Defaults\s*$", re.MULTILINE),
         }
-        checked = list(SKILLS.rglob("*.md")) + [ROOT / "AGENTS.md"]
+        checked = (
+            list(SKILLS.rglob("*.md"))
+            + list((ROOT / "docs").rglob("*.md"))
+            + list((ROOT / "evals").rglob("*.json"))
+            + [ROOT / "AGENTS.md"]
+        )
         for path in checked:
             text = path.read_text(encoding="utf-8")
             for label, pattern in forbidden.items():
@@ -53,6 +58,8 @@ class WorkflowGovernanceTests(unittest.TestCase):
             "authority:",
             "evidence:",
             "changes:",
+            "verification:",
+            "terminal_state:",
             "next:",
             "drift_facts:",
         ]
@@ -61,6 +68,61 @@ class WorkflowGovernanceTests(unittest.TestCase):
             for item in required:
                 self.assertIn(item, text, f"{name}: missing checkpoint field {item}")
             self.assertRegex(text, r"[Oo]n resume.*drift|resume.*drift-prone")
+
+    def test_prompt_contract_has_independent_authority_and_terminal_state(self) -> None:
+        path = ROOT / "docs/prompt-workflow-contract.md"
+        text = path.read_text(encoding="utf-8")
+        for item in (
+            "objective:",
+            "evidence:",
+            "scope:",
+            "authority:",
+            "terminal_state:",
+            "read-only | edit | push | merge | deploy | workflow-state | publish | cleanup",
+            "Authority is not transitive",
+            "Read back every mutated remote object",
+        ):
+            self.assertIn(item, text)
+        for name in ("agent-preflight", "codex-ship-loop"):
+            self.assertIn("docs/prompt-workflow-contract.md", skill_text(name))
+
+    def test_chinese_readme_and_prompt_contract_are_first_class(self) -> None:
+        english = (ROOT / "README.md").read_text(encoding="utf-8")
+        chinese = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
+        chinese_contract = (
+            ROOT / "docs/prompt-workflow-contract.zh-CN.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("README.zh-CN.md", english)
+        self.assertIn("README.md", chinese)
+        self.assertIn("Prompt 工作流方法论", chinese)
+        self.assertIn("prompt-workflow-contract.zh-CN.md", chinese)
+        for item in (
+            "objective:",
+            "evidence:",
+            "scope:",
+            "authority:",
+            "terminal_state:",
+            "权限不传递",
+        ):
+            self.assertIn(item, chinese_contract)
+
+    def test_prompt_contract_fixtures_cover_progressive_authority(self) -> None:
+        path = ROOT / "evals/prompt-workflow-contract/evals.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            {item["id"] for item in data["evals"]},
+            {
+                "terse-review-is-read-only",
+                "fix-and-push-stops-before-merge",
+                "merge-with-testing-handoff",
+                "exact-sha-deploy-terminal-state",
+                "resume-refreshes-only-drift",
+            },
+        )
+        for item in data["evals"]:
+            self.assertTrue(item["prompt"])
+            self.assertTrue(item["expected_output"])
+            self.assertGreaterEqual(len(item["assertions"]), 4)
 
     def test_redundant_legacy_skills_are_removed(self) -> None:
         for name in ("gitlab-mr-context", "path-verify"):
