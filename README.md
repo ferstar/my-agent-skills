@@ -34,6 +34,25 @@ terminal state has been read back and verified.
 
 See the complete [prompt workflow contract](docs/prompt-workflow-contract.md).
 
+## Harness observability
+
+The `harness-observe` skill provides a privacy-safe improvement loop backed by
+one local append-only JSONL source of truth. It records workflow outcomes,
+terminal-state verification, skill use, authority decisions, normalized failure
+classes, duration, and token counts without storing prompts, responses, commands,
+paths, URLs, or tool payloads.
+
+Codex lifecycle coverage is installed as deterministic `UserPromptSubmit` and
+`Stop` hooks rather than a default global-prompt instruction. The hook adapter
+ignores prompt and assistant-message content and does not infer success from prose.
+
+Derived summaries and repeated-failure candidates are reproducible from the
+event stream. A candidate must be confirmed against its source session and
+promoted into a sanitized eval before it can justify a harness change; raw
+events never authorize automatic self-modification.
+
+See [local harness observability and improvement loop](docs/harness-observability-loop.md).
+
 ## Current skills
 
 ### `exa-tools`
@@ -77,6 +96,11 @@ Design goals:
 ### `agent-preflight`
 
 Minimal repo and environment preflight before non-trivial Codex work.
+
+### `harness-observe`
+
+Record and analyze content-free local JSONL events for workflow observability,
+recurring-failure discovery, and reviewed eval-driven harness improvement.
 
 ### `agent-boundary-hardening`
 

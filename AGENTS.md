@@ -30,6 +30,14 @@ This repository is the public subset of local Agent Skills.
 - Run `scripts/link-user-skills.ps1` on Windows to link public repo skills into the local installed skills directory.
 - Use `--force` / `-Force` only when replacing an existing local installed copy is intentional.
 
+## Harness observability
+
+- Local harness observation uses the `harness-observe` event contract.
+- Prefer deterministic runtime hooks for lifecycle coverage over global prompt instructions. Keep outcome classification in an outcome-aware producer; do not infer success from assistant prose.
+- Treat its append-only JSONL file as the sole source of truth; reports and eval candidates are derived views.
+- Keep events content-free. Do not record prompts, responses, commands, paths, URLs, host names, tool arguments, tool results, secrets, or customer data.
+- Raw events may propose an eval candidate but never authorize automatic skill edits, commits, pushes, merges, deploys, or publishing.
+
 ## Remote hosts
 
 - Keep machine-specific SSH aliases and addresses in private configuration, not in this public repository.

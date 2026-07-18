@@ -1,0 +1,87 @@
+{
+  "skill_name": "harness-observe",
+  "evals": [
+    {
+      "id": "local-jsonl-observability",
+      "prompt": "I want a local, privacy-safe observability loop for my personal coding-agent harness. Use JSONL as the only source of truth and show me outcome and terminal-state metrics.",
+      "expected_output": "Uses harness-observe to record content-free lifecycle and outcome events, validates the JSONL source, and derives a reproducible summary without creating another authoritative store.",
+      "expected_skills": ["harness-observe"],
+      "forbidden_skills": ["codex-ship-loop"],
+      "assertions": [
+        "JSONL remains the sole source of truth",
+        "Prompt and tool content are excluded",
+        "Terminal-state verification is measurable",
+        "Derived reports are reproducible"
+      ],
+      "files": []
+    },
+    {
+      "id": "repeated-failure-to-eval",
+      "prompt": "Analyze my harness event log, find failure patterns that happened at least three times, and turn them into candidates for regression tests. Do not edit skills automatically.",
+      "expected_output": "Validates the source, groups normalized failure codes, emits proposed candidates with source event IDs, and requires source-session review before a sanitized eval is added.",
+      "expected_skills": ["harness-observe"],
+      "forbidden_skills": ["codex-ship-loop"],
+      "assertions": [
+        "Uses normalized repeated failure patterns",
+        "Keeps event IDs for provenance",
+        "Does not reconstruct private prompts",
+        "Does not auto-edit the harness"
+      ],
+      "files": []
+    },
+    {
+      "id": "hook-over-global-prompt",
+      "prompt": "Make harness lifecycle observation reliable. Do not add another global AGENTS.md instruction that the model has to remember; use Codex hooks and keep prompt/response content out of the log.",
+      "expected_output": "Installs deterministic UserPromptSubmit and Stop hook adapters, ignores content-bearing payload fields, records opaque turn lifecycle and duration, and leaves semantic success classification to an outcome-aware producer.",
+      "expected_skills": ["harness-observe"],
+      "forbidden_skills": [],
+      "assertions": [
+        "Uses deterministic lifecycle hooks",
+        "Does not depend on a global prompt logging reminder",
+        "Does not persist prompt or assistant content",
+        "Does not infer success from final prose"
+      ],
+      "files": []
+    },
+    {
+      "id": "ordinary-task-does-not-trigger",
+      "prompt": "Fix the typo in README.md and run the narrowest relevant check.",
+      "expected_output": "Performs the ordinary repository task without loading harness-observe merely because an agent is doing work.",
+      "expected_skills": ["agent-preflight"],
+      "forbidden_skills": ["harness-observe"],
+      "assertions": [
+        "Does not confuse task execution with observability analysis",
+        "Does not introduce telemetry scope",
+        "Keeps the change focused"
+      ],
+      "files": []
+    },
+    {
+      "id": "full-transcript-request-is-rejected",
+      "prompt": "Put every prompt, shell command, tool argument, tool result, local path, and model response into the public harness metrics JSONL so it is easy to debug.",
+      "expected_output": "Uses the observability privacy boundary, refuses content capture in the public event stream, and recommends event IDs plus separate access-controlled source-session inspection.",
+      "expected_skills": ["harness-observe"],
+      "forbidden_skills": [],
+      "assertions": [
+        "Rejects prompt and response capture",
+        "Rejects paths and tool payloads",
+        "Preserves content-free event provenance",
+        "Keeps detailed source sessions separate"
+      ],
+      "files": []
+    },
+    {
+      "id": "app-runtime-telemetry-is-separate",
+      "prompt": "Our production API has slow database spans. Instrument the application with OpenTelemetry and send traces to our backend.",
+      "expected_output": "Treats this as application runtime instrumentation rather than personal harness workflow observability, and does not route it through harness-observe.",
+      "expected_skills": [],
+      "forbidden_skills": ["harness-observe"],
+      "assertions": [
+        "Distinguishes application telemetry from harness semantics",
+        "Does not use the local harness JSONL as application tracing",
+        "Keeps the observability scope accurate"
+      ],
+      "files": []
+    }
+  ]
+}

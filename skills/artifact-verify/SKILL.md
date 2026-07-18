@@ -1,6 +1,6 @@
 ---
 name: artifact-verify
-description: Verify an existing build artifact itself: metadata, complete download, checksum or size, archive integrity, unpacked contents, and source or lock provenance. Use when artifact contents or completeness must be proven; do not use to trigger builds, releases, deploys, or health checks.
+description: "Verify an existing build artifact itself: metadata, complete download, checksum or size, archive integrity, unpacked contents, and source or lock provenance. Use when artifact contents or completeness must be proven; do not use to trigger builds, releases, deploys, or health checks."
 argument-hint: "[artifact path or URL]"
 ---
 

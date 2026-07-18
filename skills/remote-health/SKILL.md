@@ -1,6 +1,6 @@
 ---
 name: remote-health
-description: Diagnose the live remote-access layer: SSH resolution, reachability, Tailscale, login-shell PATH, service state, package-manager locks, and remote CLI auth. Use when a named remote host or service is unreachable or unhealthy; do not use for deploy planning or ordinary local repo work.
+description: "Diagnose the live remote-access layer: SSH resolution, reachability, Tailscale, login-shell PATH, service state, package-manager locks, and remote CLI auth. Use when a named remote host or service is unreachable or unhealthy; do not use for deploy planning or ordinary local repo work."
 argument-hint: "[host]"
 ---
 

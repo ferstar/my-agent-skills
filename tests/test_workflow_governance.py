@@ -26,6 +26,12 @@ class WorkflowGovernanceTests(unittest.TestCase):
             self.assertIsNotNone(description, f"{path}: missing description")
             self.assertRegex(name.group(1), r"^[a-z0-9-]{1,64}$")
             self.assertLessEqual(len(description.group(1)), 1024)
+            if ": " in description.group(1):
+                self.assertRegex(
+                    description.group(1),
+                    r"^(?:\".*\"|'.*')$",
+                    f"{path}: YAML description containing ': ' must be quoted",
+                )
 
     def test_public_skill_docs_do_not_leak_private_conventions(self) -> None:
         forbidden = {
