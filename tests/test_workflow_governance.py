@@ -62,10 +62,11 @@ class WorkflowGovernanceTests(unittest.TestCase):
                 self.assertIn(item, text, f"{name}: missing checkpoint field {item}")
             self.assertRegex(text, r"[Oo]n resume.*drift|resume.*drift-prone")
 
-    def test_legacy_overlap_skills_do_not_auto_trigger(self) -> None:
+    def test_redundant_legacy_skills_are_removed(self) -> None:
         for name in ("gitlab-mr-context", "path-verify"):
-            self.assertIn("disable-model-invocation: true", skill_text(name))
-        self.assertIn("glab/references/workflows.md", (ROOT / "README.md").read_text(encoding="utf-8"))
+            self.assertFalse((SKILLS / name).exists())
+        workflows = (SKILLS / "glab" / "references" / "workflows.md").read_text(encoding="utf-8")
+        self.assertIn("Context and merge-readiness snapshot", workflows)
 
     def test_artifact_verification_is_read_only_and_separate(self) -> None:
         artifact = skill_text("artifact-verify")

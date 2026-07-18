@@ -65,17 +65,9 @@ Create or refine measurable goals only when goal-backed work is explicitly reque
 
 Ship verified Codex code changes through PR/MR, remote merge, and local cleanup.
 
-### `gitlab-mr-context`
-
-Compatibility alias for older prompts; active GitLab MR context guidance lives in `glab/references/workflows.md`.
-
 ### `ci-first-failure`
 
 Find the first real failing GitHub Actions or GitLab CI job before editing.
-
-### `path-verify`
-
-Compatibility helper for explicitly selecting a minimal validation command when repo-local guidance is absent.
 
 ### `release-deploy-preflight`
 
