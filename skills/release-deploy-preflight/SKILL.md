@@ -1,12 +1,12 @@
 ---
 name: release-deploy-preflight
-description: Preflight release, deploy, artifact, and dev desktop packaging work before triggering workflows. Use when the user asks to deploy, release, package desktop builds, trigger dev workflows, inspect artifacts, fix download links, or verify a deployed environment.
+description: Resolve target, workflow inputs, exact source SHA, authority, and live verification before release, deploy, packaging, or workflow dispatch. Use for operations that may mutate a release or environment; use artifact-verify instead when only inspecting artifact contents.
 argument-hint: "[environment or sha]"
 ---
 
 # Release Deploy Preflight
 
-Never trigger a workflow before confirming the exact target.
+Confirm the exact target before any external mutation. This skill ends at preflight and verification guidance; it does not grant dispatch, release, deploy, or publish authority.
 
 ## Required Facts
 
@@ -16,7 +16,7 @@ Collect:
 - target environment
 - full 40-character SHA
 - active GitHub/GitLab account and permission if workflow dispatch is needed
-- artifact naming contract
+- artifact naming contract and expected source provenance
 - post-deploy health check
 
 ## Commands
@@ -37,13 +37,15 @@ esac
 printf '%s\n' "$sha" | grep -Eq '^[0-9a-f]{40}$'
 ```
 
-## TyClaw Defaults
+Read project-specific workflow names, ordering, channels, and artifact naming from the live repository or private configuration. Do not infer them from a familiar product or environment name.
 
-- dev deploys are dispatched from `tyclaw-release`.
-- run API Gateway before Console; Web only when needed.
-- dev desktop packaging uses `build-desktop.yml` with empty `tag`, not `tag=dev`.
-- dev desktop artifacts should be `TailOS-Dev-*`.
+## Boundaries
+
+- Use `ci-first-failure` when an existing run is red.
+- Use `artifact-verify` for complete download, archive integrity, unpacked contents, metadata, and lock/provenance checks.
+- Use `remote-health` only when host reachability or remote services are the failing layer.
+- Reconfirm authority immediately before dispatch. Merge, deploy, release, publish, and cleanup are separate mutations and must each be covered by the user's request.
 
 ## Verification
 
-Workflow success is not enough. Verify the real target: remote SHA, container command if relevant, API `/health`, Web response, Console `/login`, or artifact URL.
+Workflow success is not enough. Verify the real target using the checks defined by that repository: for example remote SHA, service or container state, health endpoint, public response, or artifact provenance. Report the exact deployed SHA.

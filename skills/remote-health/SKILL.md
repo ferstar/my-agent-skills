@@ -1,6 +1,6 @@
 ---
 name: remote-health
-description: Diagnose SSH, Tailscale, remote PATH, system service, lock, auth, and Codex CLI issues on named hosts. Use when the user mentions SSH, remote host, my-mini, my-arch, my-win, ty-hk, Tailscale, PATH, codex on a remote machine, apt lock, service status, or host reachability.
+description: Diagnose the live remote-access layer: SSH resolution, reachability, Tailscale, login-shell PATH, service state, package-manager locks, and remote CLI auth. Use when a named remote host or service is unreachable or unhealthy; do not use for deploy planning or ordinary local repo work.
 argument-hint: "[host]"
 ---
 
@@ -41,7 +41,7 @@ ssh <host> 'systemctl --failed; systemctl list-timers | sed -n "1,80p"; sudo fus
 If Windows OpenSSH rejects a key, inspect ACL before rotating keys:
 
 ```powershell
-icacls C:\Users\ferstar\.ssh\<key>
+icacls C:\Users\<username>\.ssh\<key>
 ```
 
 Private keys should not inherit broad sandbox or group read permissions.

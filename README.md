@@ -53,13 +53,21 @@ Design goals:
 
 Minimal repo and environment preflight before non-trivial Codex work.
 
+### `agent-boundary-hardening`
+
+Audit and repair repository-level agent scope and permission overreach without turning general security review into a routing dependency.
+
+### `define-goal`
+
+Create or refine measurable goals only when goal-backed work is explicitly requested.
+
 ### `codex-ship-loop`
 
 Ship verified Codex code changes through PR/MR, remote merge, and local cleanup.
 
 ### `gitlab-mr-context`
 
-Reliable GitLab issue/MR/pipeline/comment context gathering with `glab api`.
+Compatibility alias for older prompts; active GitLab MR context guidance lives in `glab/references/workflows.md`.
 
 ### `ci-first-failure`
 
@@ -67,15 +75,29 @@ Find the first real failing GitHub Actions or GitLab CI job before editing.
 
 ### `path-verify`
 
-Choose the smallest useful validation command from changed file paths.
+Compatibility helper for explicitly selecting a minimal validation command when repo-local guidance is absent.
 
 ### `release-deploy-preflight`
 
-Preflight release, deploy, artifact, and desktop packaging workflows.
+Preflight release, deploy, desktop packaging, and workflow-dispatch operations.
+
+### `artifact-verify`
+
+Verify downloaded build artifacts, archives, metadata, contents, and source provenance without triggering release or deploy workflows.
 
 ### `remote-health`
 
 Diagnose SSH, Tailscale, PATH, service, lock, and remote Codex issues.
+
+### `tianbot-docs`
+
+Answer Tianbot product questions from current official documentation without hardcoding version-sensitive facts.
+
+## Standalone public skills
+
+Some public skills are maintained as complete standalone repositories rather than duplicated under `skills/`:
+
+- [`fast-context`](https://github.com/ferstar/fast-context) — Python-first hybrid repository context search with its own `SKILL.md`, runtime source, tests, and lockfile. Install and update it from that upstream repository.
 
 ## Conventions
 
@@ -83,6 +105,7 @@ Diagnose SSH, Tailscale, PATH, service, lock, and remote Codex issues.
 - Put trigger conditions and workflow in `SKILL.md`
 - Keep runtime checks and smoke tests in `tests/`, not inside skill directories
 - Avoid committing `node_modules`, caches, or temporary outputs
+- Do not vendor a second copy of a skill that already has a dedicated public source repository
 - Prefer standard library and small dependency sets over legacy packages
 - Run every new or imported skill through `skill-creator` conventions before treating it as done
 

@@ -1,6 +1,7 @@
 ---
 name: path-verify
-description: Choose the smallest useful validation command from changed file paths. Use after edits or during review when deciding what to run for TypeScript, React, Electron/Desktop, Rust, runtime schema, docs, tests, or monorepo work.
+description: Compatibility helper for explicitly choosing a minimal validation command when repository instructions and package scripts do not already provide one. Do not auto-invoke after every edit or combine with repo-specific verification guidance.
+disable-model-invocation: true
 argument-hint: "[repo]"
 ---
 
@@ -15,19 +16,17 @@ git diff --name-only
 git diff --cached --name-only
 ```
 
-## Common Mapping
+## Selection order
 
-- `apps/desktop/**`: desktop typecheck/tests, plus Electron or e2e only for UI/runtime behavior.
-- `apps/console/**`: console typecheck/build and focused tests.
-- `apps/api-gateway/**`: API build/tests and endpoint smoke if changed.
-- `packages/**`: package-specific typecheck/tests; broaden to dependents only when exported contracts changed.
-- `crates/**`: run Rust checks from the Rust workspace root, often `crates/`.
-- `tailos-runtime.lock` or schema files: run schema/CLI ensure checks and a consumer smoke.
-- docs only: markdown/frontmatter/link checks if available; skip app tests.
+1. Follow the nearest in-scope instructions.
+2. Prefer a documented `verify`, `check`, package, or module script.
+3. Map changed paths to the owning module and run its narrow check.
+4. Broaden only when exported contracts or shared behavior changed.
+5. For docs-only changes, use available Markdown, frontmatter, and link checks; skip application suites.
 
 ## Rules
 
 - One narrow check is enough for small, local changes.
-- Shared protocol, runtime, auth, billing, permission, or persistence changes need a broader check.
+- Shared protocol, runtime, auth, permission, persistence, or release-contract changes need a broader check.
 - If a repo has a documented `just verify` or package script, prefer it over hand-assembled commands.
 - Report skipped broad checks and why.

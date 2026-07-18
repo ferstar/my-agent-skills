@@ -16,6 +16,23 @@ export GITLAB_HOST=gitlab.example.org
 
 ## Merge Request Workflow
 
+### Context and merge-readiness snapshot
+
+Resolve the active GitLab host from arguments, repository remotes, or authenticated configuration; never hardcode a private instance. URL-encode `<namespace>/<project>` in API paths.
+
+```bash
+project='<namespace>%2F<project>'
+iid='<iid>'
+glab api "projects/$project/merge_requests/$iid" | jq '{iid,title,state,source_branch,target_branch,merge_status,detailed_merge_status,sha,web_url}'
+glab api "projects/$project/merge_requests/$iid/changes" | jq -r '.changes[].new_path'
+glab api "projects/$project/merge_requests/$iid/pipelines" | jq '.[0] | {id,status,sha,web_url}'
+glab api "projects/$project/merge_requests/$iid/discussions?per_page=100" | jq 'map({id,resolved: ([.notes[].resolved] | all),notes: [.notes[] | {id,author:.author.username,body}]})'
+```
+
+Before making a review or merge decision, report the MR state and exact head SHA, pipeline status, unresolved discussions, changed files, linked issue state and labels, and validation evidence. Review-only requests stop after reporting; they do not authorize edits, comments, labels, merge, or cleanup.
+
+Prefer newer live discussions over stale issue or MR body text. Immediately before an authorized merge, refresh the head SHA, pipeline, discussions, and mergeability rather than replaying all stable context.
+
 ### Creating MR
 
 ```bash
@@ -110,6 +127,7 @@ After MR merge:
 
 - If the issue was auto-closed through `Closes #<iid>`, run `glab issue view <iid>` and verify both `state` and labels.
 - If GitLab closed the issue but left workflow labels such as `doing`, fix them explicitly with `glab issue update <iid> --unlabel doing --label done`.
+- If the intended workflow requires verification after merge, keep the issue open and apply the repository's testing/verification label. Do not include `Closes #<iid>` in that MR.
 
 ### Using API (Recommended for Automation)
 

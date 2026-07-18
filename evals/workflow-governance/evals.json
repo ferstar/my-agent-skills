@@ -1,0 +1,126 @@
+{
+  "skill_name": "workflow-governance",
+  "evals": [
+    {
+      "id": "review-only",
+      "prompt": "Review the current merge request and tell me what blocks it. Do not change code or remote state.",
+      "expected_output": "Reads live MR, pipeline, discussions, changed files, and linked issue state, then reports findings without edits, comments, labels, merge, deploy, or cleanup.",
+      "expected_skills": ["agent-preflight", "glab"],
+      "forbidden_skills": ["codex-ship-loop", "release-deploy-preflight"],
+      "assertions": [
+        "Treats review-only as read-only",
+        "Uses live MR and CI facts",
+        "Does not infer merge authority"
+      ],
+      "files": []
+    },
+    {
+      "id": "merge-issue-to-test",
+      "prompt": "The fix is verified. Merge the MR, but keep its issue open and move it to the repository's testing state.",
+      "expected_output": "Refreshes the exact MR head and merge gate, performs only the authorized merge, avoids auto-close syntax, and verifies that the issue remains open with the testing label.",
+      "expected_skills": ["codex-ship-loop", "glab"],
+      "forbidden_skills": ["release-deploy-preflight"],
+      "assertions": [
+        "Merge uses refreshed exact head SHA",
+        "Issue remains open",
+        "Testing label is verified",
+        "Deploy is not implied"
+      ],
+      "files": []
+    },
+    {
+      "id": "exact-sha-deploy-health",
+      "prompt": "Deploy this exact commit to the requested environment and confirm the live service health.",
+      "expected_output": "Resolves the live workflow contract and full SHA, confirms deploy authority, dispatches only the requested target, then verifies workflow result, deployed SHA, and real health evidence.",
+      "expected_skills": ["agent-preflight", "release-deploy-preflight"],
+      "forbidden_skills": ["artifact-verify"],
+      "assertions": [
+        "Uses a full exact source SHA",
+        "Checks live workflow inputs",
+        "Verifies deployed SHA and health",
+        "Does not infer unrelated cleanup"
+      ],
+      "files": []
+    },
+    {
+      "id": "ci-first-failure",
+      "prompt": "This pull request is red. Find the real failure before proposing a fix.",
+      "expected_output": "Reads the concrete run at its actual workflow revision and identifies the first actionable failing job, step, SHA, and useful error before editing.",
+      "expected_skills": ["ci-first-failure"],
+      "forbidden_skills": ["release-deploy-preflight", "remote-health"],
+      "assertions": [
+        "Identifies first actionable failure",
+        "Records exact SHA and workflow revision",
+        "Does not edit before isolation"
+      ],
+      "files": []
+    },
+    {
+      "id": "source-install-link-direction",
+      "prompt": "Install the public skills from this checkout and verify the links point in the correct direction.",
+      "expected_output": "Treats skills/<name> as source and creates installation-side links under the configured user skill directory that point to the repo source, never the reverse.",
+      "expected_skills": ["agent-preflight"],
+      "forbidden_skills": [],
+      "assertions": [
+        "Repo skill directory remains the source",
+        "Install-side entry is the link",
+        "Existing real directories require explicit force before replacement"
+      ],
+      "files": ["scripts/link-user-skills.sh", "scripts/link-user-skills.ps1"]
+    },
+    {
+      "id": "artifact-content-verification",
+      "prompt": "Prove the desktop artifact from this run is complete and contains the expected runtime lock and packaged resources.",
+      "expected_output": "Binds metadata to the exact run and SHA, completely downloads the artifact, verifies size/checksum and archive integrity, extracts it, and checks required content and provenance without dispatching a workflow.",
+      "expected_skills": ["artifact-verify"],
+      "forbidden_skills": ["release-deploy-preflight", "codex-ship-loop"],
+      "assertions": [
+        "Downloads the complete artifact",
+        "Tests archive integrity",
+        "Checks extracted required paths and lock provenance",
+        "Does not trigger build or deploy"
+      ],
+      "files": []
+    },
+    {
+      "id": "agent-boundary-hardening",
+      "prompt": "This repository agent accepts arbitrary shell commands even though it should only run two approved scripts. Audit and fix its prompt and permission files.",
+      "expected_output": "Reads the active agent instructions and permission settings, identifies the effective overreach, preserves the two required commands, applies the smallest prompt/settings fix, and validates the effective policy.",
+      "expected_skills": ["agent-boundary-hardening"],
+      "forbidden_skills": ["codex-ship-loop", "remote-health"],
+      "assertions": [
+        "Finds both prompt and permission layers",
+        "Preserves legitimate command access",
+        "Does not confuse agent boundaries with application authorization"
+      ],
+      "files": []
+    },
+    {
+      "id": "explicit-goal-definition",
+      "prompt": "Create a measurable goal for reducing this API's p95 latency and use the goal tool. Do not start implementation yet.",
+      "expected_output": "Defines a concrete metric, threshold, evidence, scope, and stop condition, checks existing goal state, and creates one goal without starting ordinary implementation or inventing a token budget.",
+      "expected_skills": ["define-goal"],
+      "forbidden_skills": ["codex-ship-loop", "release-deploy-preflight"],
+      "assertions": [
+        "Creates a measurable outcome rather than an activity goal",
+        "Checks active goal state",
+        "Does not start implementation",
+        "Does not add an unrequested token budget"
+      ],
+      "files": []
+    },
+    {
+      "id": "tianbot-current-docs",
+      "prompt": "ROS2GO 当前支持哪些系统和硬件？请给我官方依据。",
+      "expected_output": "Opens the relevant current Tianbot compatibility or product pages, answers from live documentation, and links the exact sources without relying on a hardcoded version table.",
+      "expected_skills": ["tianbot-docs"],
+      "forbidden_skills": ["remote-health", "release-deploy-preflight"],
+      "assertions": [
+        "Uses current official Tianbot documentation",
+        "Links the supporting page",
+        "Does not treat stale embedded facts as current"
+      ],
+      "files": []
+    }
+  ]
+}
