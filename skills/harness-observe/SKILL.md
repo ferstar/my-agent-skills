@@ -1,110 +1,77 @@
 ---
 name: harness-observe
-description: Record and analyze privacy-safe local JSONL events for a personal agent harness. Use when the user wants harness observability, workflow metrics, recurring-failure analysis, eval candidates, or an evidence-driven improvement loop; do not use for ordinary task execution or full transcript capture.
-argument-hint: "record | summary | candidates | validate | doctor"
+description: Autonomously audit native local Codex session JSONL for workflow quality, latency, cost shape, tool use, recurring failures, and eval candidates. Use when the user wants scheduled harness observability or evidence-driven harness improvement; do not use for ordinary task execution, application telemetry, or full transcript export.
+argument-hint: "[audit window, default: 7 days]"
 ---
 
 # Harness Observe
 
-Use a local append-only JSONL event stream as the sole source of truth for
-harness observability. Derived reports and eval candidates are disposable and
-must be reproducible from that stream.
+Treat native `$CODEX_HOME/sessions/**/*.jsonl` as the sole source of truth.
+Derived metrics, audit reports, and eval candidates are disposable views. Do not
+create a second authoritative event store and do not require the user to poll
+files or run report commands manually.
 
-## Boundary
+## Deterministic scan
 
-This skill observes workflow behavior; it does not execute, approve, merge,
-deploy, or publish the work being observed. It also does not replace
-application telemetry or preserve full transcripts.
-
-Default collection is content-free. Never record prompts, responses, reasoning,
-commands, file paths, URLs, host names, tool arguments, tool results, access
-tokens, credentials, customer data, or arbitrary free text. Token *counts* are
-allowed.
-
-## Event lifecycle
-
-Prefer deterministic runtime hooks for lifecycle coverage:
-
-1. A Codex `UserPromptSubmit` hook appends `turn_started` without reading or
-   retaining the supplied prompt.
-2. A Codex `Stop` hook appends `turn_stopped` and derived duration without
-   reading or retaining the assistant message.
-3. An outcome-aware producer may append `run_started`, `phase_changed`,
-   `guard_decision`, `verification`, exactly one `run_finished`, and `feedback`.
-
-Do not emit events for routine reads or every tool call. Native runtime tracing
-may capture those details separately; this event stream records the harness
-semantics needed for improvement.
-
-Lifecycle hooks cannot prove success, skill use, or terminal-state completion.
-Do not parse final assistant prose to guess those facts. Keep lifecycle coverage
-and semantic outcome evaluation separate.
-
-## Commands
-
-The standard-library CLI resolves its default log from
-`HARNESS_OBSERVABILITY_LOG`, then
-`$CODEX_HOME/harness-observe/events.jsonl`, falling back to
-`~/.codex/harness-observe/events.jsonl`. This keeps Codex hook configuration
-and its local observation state under one control-plane directory.
+Run the bundled scanner first:
 
 ```bash
-python3 scripts/harness_observe.py doctor
-
-python3 scripts/install_codex_hooks.py install
-python3 scripts/install_codex_hooks.py check
-
-python3 scripts/harness_observe.py record \
-  --run-id task-20260718-01 \
-  --event-type run_finished \
-  --phase DONE \
-  --status ok \
-  --outcome success \
-  --terminal-state-met true \
-  --task-kind repo-change \
-  --skill agent-preflight \
-  --skill codex-ship-loop \
-  --duration-ms 42000
-
-python3 scripts/harness_observe.py summary --format markdown
-python3 scripts/harness_observe.py candidates --minimum-count 2
-python3 scripts/harness_observe.py validate
+PYTHONDONTWRITEBYTECODE=1 python3 scripts/scan_codex_sessions.py --days 7
 ```
 
-Pass `--log <path>` before the subcommand to use a different source file.
-After installing or changing Codex hooks, review and trust their exact definition
-through Codex's `/hooks` UI. Observation is fail-open and must never block work.
+The scanner reads structured records such as `task_started`, `task_complete`,
+`token_count`, `turn_context`, and tool calls. It outputs only content-free
+metrics:
 
-## Improvement loop
+- turn completion rate;
+- duration and time-to-first-token median/P95;
+- input/output token median/P95;
+- tool calls per turn and tool distribution;
+- model, approval-policy, and sandbox-policy distribution;
+- opaque session/turn references for incomplete work;
+- malformed JSONL count.
+
+Do not infer semantic success from these metrics alone.
+
+## AI audit
+
+1. Check source health and establish the requested time window.
+2. Compare completion, latency, token, and tool-use shape with a prior audit when
+   comparable evidence is available.
+3. Ignore isolated noise. Escalate corrupted input, persistent incomplete turns,
+   repeated workflow failures, or meaningful latency/cost regression.
+4. For a high-signal anomaly, locate the referenced native session and inspect
+   only the minimum evidence needed to confirm cause, actual skills used,
+   authority handling, outcome, and terminal-state verification.
+5. Recommend exactly one disposition: `observe`, `promote-to-eval`,
+   `change-skill`, `change-deterministic-tooling`, or `fix-instrumentation`.
+6. If no actionable signal exists, report a short health result and stop.
+
+Never copy prompts, responses, reasoning, commands, paths, URLs, tool arguments,
+tool results, secrets, or customer data into reports or public fixtures. Session
+and turn IDs are provenance pointers, not report content unless needed to make a
+finding actionable.
+
+## Scheduled operation
+
+Prefer a scheduled Codex task over per-turn hooks. The task should run the scan,
+perform the AI audit, and send a concise inbox report. Keep it read-only by
+default; raw observations never grant edit, commit, push, merge, deploy,
+publishing, or cleanup authority.
+
+## Eval promotion
+
+Promote a finding only after source-session evidence confirms a repeated cause
+and the case can be reproduced without private content. Keep capability evals
+separate from regression evals. Measure the proposed harness change against a
+baseline using repeated trials and deterministic graders where possible.
+
+## Report format
 
 ```text
-JSONL events
-  -> deterministic summary
-  -> repeated failure/blocked pattern
-  -> proposed eval candidate
-  -> human review and reproducible fixture
-  -> measured harness change
-  -> regression gate
+Status: healthy | attention | invalid-source
+Evidence: <3-5 comparable metrics>
+Finding: <one confirmed pattern or "no actionable signal">
+Disposition: <one allowed disposition>
+Next: <one action, or none>
 ```
-
-`candidates` proposes patterns; it never edits skills or evals. Promote a
-candidate only when the underlying session evidence confirms the diagnosis and
-the case can be reproduced without private data. Keep capability evals separate
-from near-100%-pass regression evals.
-
-Prefer code-based outcome graders. Use model graders only for behavior that
-cannot be checked deterministically, and calibrate them with periodic human
-review. Compare repeated trials rather than treating one model run as proof.
-
-## Review cadence
-
-- After a failed or blocked run: validate the event and normalize `error_code`.
-- Weekly: inspect summary deltas and repeated candidates.
-- Before changing a skill: establish a baseline from the relevant eval cases.
-- After changing a skill: rerun capability and regression cases; retain the
-  change only when outcome quality improves without unacceptable safety, time,
-  or token-count regression.
-
-Read [`references/event-schema.md`](references/event-schema.md) when adding a
-producer or adapter. The machine-readable schema is
-[`references/event.schema.json`](references/event.schema.json).

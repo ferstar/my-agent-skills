@@ -32,11 +32,11 @@ This repository is the public subset of local Agent Skills.
 
 ## Harness observability
 
-- Local harness observation uses the `harness-observe` event contract.
-- Prefer deterministic runtime hooks for lifecycle coverage over global prompt instructions. Keep outcome classification in an outcome-aware producer; do not infer success from assistant prose.
-- Treat its append-only JSONL file as the sole source of truth; reports and eval candidates are derived views.
-- Keep events content-free. Do not record prompts, responses, commands, paths, URLs, host names, tool arguments, tool results, secrets, or customer data.
-- Raw events may propose an eval candidate but never authorize automatic skill edits, commits, pushes, merges, deploys, or publishing.
+- Local harness observation uses the `harness-observe` native-session scanner and AI audit contract.
+- Prefer scheduled analysis of native session JSONL over global prompt instructions or per-turn hooks. Do not infer semantic success from aggregate metrics alone.
+- Treat native Codex session JSONL as the sole source of truth. Content-free metrics, AI findings, reports, and eval candidates are derived views.
+- Keep derived metrics and reports content-free. Do not export prompts, responses, commands, paths, URLs, host names, tool arguments, tool results, secrets, or customer data.
+- Raw observations may propose an eval candidate but never authorize automatic skill edits, commits, pushes, merges, deploys, or publishing.
 
 ## Remote hosts
 

@@ -37,19 +37,18 @@ See the complete [prompt workflow contract](docs/prompt-workflow-contract.md).
 ## Harness observability
 
 The `harness-observe` skill provides a privacy-safe improvement loop backed by
-one local append-only JSONL source of truth. It records workflow outcomes,
-terminal-state verification, skill use, authority decisions, normalized failure
-classes, duration, and token counts without storing prompts, responses, commands,
-paths, URLs, or tool payloads.
+native local Codex session JSONL as its sole source of truth. A deterministic
+scanner derives content-free lifecycle, latency, token, tool-use, model, and
+permission metrics; an AI audit reviews only high-signal source sessions for
+outcome, terminal-state, skill-use, and failure classification.
 
-Codex lifecycle coverage is installed as deterministic `UserPromptSubmit` and
-`Stop` hooks rather than a default global-prompt instruction. The hook adapter
-ignores prompt and assistant-message content and does not infer success from prose.
+Scheduled AI review replaces per-turn hooks and global-prompt logging
+instructions. The user does not need to poll JSONL or run report commands.
 
-Derived summaries and repeated-failure candidates are reproducible from the
-event stream. A candidate must be confirmed against its source session and
+Derived summaries and repeated-failure candidates are reproducible from native
+session JSONL. A candidate must be confirmed against its source session and
 promoted into a sanitized eval before it can justify a harness change; raw
-events never authorize automatic self-modification.
+observations never authorize automatic self-modification.
 
 See [local harness observability and improvement loop](docs/harness-observability-loop.md).
 
