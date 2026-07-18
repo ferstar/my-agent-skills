@@ -1,7 +1,6 @@
 ---
 name: glab
 description: GitLab CLI workflows with `glab` for issues, merge requests, CI/CD, and GitLab API operations. Use when the user needs GitLab command-line automation, issue or MR triage, pipeline checks, API queries, threaded discussion replies, release checks, or work item conversion and hierarchy updates. Prefer `glab api` for reliable scripted flows, while keeping direct CLI commands and local helper scripts available for common MR and pipeline tasks.
-homepage: https://github.com/ferstar/my-agent-skills/tree/main/skills/glab
 metadata:
   openclaw:
     requires:

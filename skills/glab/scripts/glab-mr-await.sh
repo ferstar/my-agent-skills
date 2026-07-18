@@ -55,11 +55,9 @@ check_mr() {
     local mr_json
     mr_json=$(glab mr view "$MR_NUMBER" --output=json 2>/dev/null) || return 1
     
-    local state merged approvals
+    local state merged
     state=$(echo "$mr_json" | jq -r '.state')
     merged=$(echo "$mr_json" | jq -r '.merged_at // empty')
-    approvals=$(echo "$mr_json" | jq -r '.user.can_merge')
-    
     # Check if merged
     if [[ "$state" == "merged" ]] || [[ -n "$merged" ]]; then
         echo "✅ MR !${MR_NUMBER} has been merged!"
@@ -112,8 +110,9 @@ while true; do
     
     if check_mr; then
         exit 0
-    elif [[ $? -eq 1 ]]; then
-        exit 1
+    else
+        ret=$?
+        [[ $ret -eq 1 ]] && exit 1
     fi
     
     sleep "$INTERVAL"

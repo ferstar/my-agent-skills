@@ -380,7 +380,7 @@ glab repo fork
 # Fork and clone
 glab repo fork namespace/repo --clone
 
-# Archive repository
+# Download a repository source archive
 glab repo archive owner/project
 
 # Unarchive repository via API
@@ -398,8 +398,8 @@ glab repo create project-name --private
 # Create repository with description
 glab repo create project-name --description "My project"
 
-# Mirror repository
-glab repo mirror source-repo target-repo
+# Configure a repository mirror
+glab repo mirror owner/project --direction=pull --url=https://example.com/group/project.git
 ```
 
 ## API Access

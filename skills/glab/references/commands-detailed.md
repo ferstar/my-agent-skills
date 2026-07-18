@@ -261,11 +261,11 @@ glab ci retry
 # Retry specific job
 glab ci retry <job-id|job-name>
 
-# Cancel running pipeline
-glab ci cancel
-
 # Cancel specific pipeline
-glab ci cancel <pipeline-id>
+glab ci cancel pipeline <pipeline-id>
+
+# Cancel specific job
+glab ci cancel job <job-id>
 ```
 
 ### CI Configuration
@@ -276,14 +276,14 @@ glab ci lint
 # Lint specific file
 glab ci lint path/to/.gitlab-ci.yml
 
-# View CI configuration
-glab ci config
+# View fully merged CI configuration
+glab ci config compile
 
 # Get CI job artifacts
-glab ci artifact <job-id>
+glab job artifact <ref-name> <job-name>
 
-# Download artifacts to specific path
-glab ci artifact <job-id> -p path/to/download
+# Download one path from job artifacts
+glab job artifact <ref-name> <job-name> --path path/to/download
 ```
 
 ## Repository Operations
@@ -324,7 +324,7 @@ glab repo fork
 # Fork and clone
 glab repo fork namespace/repo --clone
 
-# Archive repository
+# Download a repository source archive
 glab repo archive owner/project
 
 # Unarchive repository via API
@@ -342,8 +342,8 @@ glab repo create project-name --private
 # Create repository with description
 glab repo create project-name --description "My project"
 
-# Mirror repository
-glab repo mirror source-repo target-repo
+# Configure a repository mirror
+glab repo mirror owner/project --direction=pull --url=https://example.com/group/project.git
 ```
 
 ## API Access

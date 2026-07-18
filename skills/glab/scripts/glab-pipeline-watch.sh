@@ -92,7 +92,7 @@ while true; do
     if check_pipeline; then
         exit 0
     else
-        local ret=$?
+        ret=$?
         [[ $ret -eq 1 ]] && exit 1
         [[ $ret -eq 3 ]] && sleep "$INTERVAL" && continue
         exit $ret
