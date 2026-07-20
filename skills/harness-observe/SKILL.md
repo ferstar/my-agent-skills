@@ -23,12 +23,15 @@ The scanner reads structured records such as `task_started`, `task_complete`,
 `token_count`, `turn_context`, and tool calls. It outputs only content-free
 metrics:
 
-- turn completion rate;
+- the requested window is applied to each record timestamp; file modification
+  time is only a coarse file prefilter;
+- completed, aborted, active, and orphaned turn counts;
+- completion and terminal rates excluding still-active turns;
 - duration and time-to-first-token median/P95;
 - input/output token median/P95;
 - tool calls per turn and tool distribution;
 - model, approval-policy, and sandbox-policy distribution;
-- opaque session/turn references for incomplete work;
+- opaque session/turn references for active and orphaned work;
 - malformed JSONL count.
 
 Do not infer semantic success from these metrics alone.
@@ -38,8 +41,10 @@ Do not infer semantic success from these metrics alone.
 1. Check source health and establish the requested time window.
 2. Compare completion, latency, token, and tool-use shape with a prior audit when
    comparable evidence is available.
-3. Ignore isolated noise. Escalate corrupted input, persistent incomplete turns,
-   repeated workflow failures, or meaningful latency/cost regression.
+3. Treat a non-terminal turn seen within the default 30-minute grace window as
+   active, not incomplete. Ignore isolated noise. Escalate corrupted input,
+   persistent orphaned turns, repeated workflow failures, or meaningful
+   latency/cost regression.
 4. For a high-signal anomaly, locate the referenced native session and inspect
    only the minimum evidence needed to confirm cause, actual skills used,
    authority handling, outcome, and terminal-state verification.
