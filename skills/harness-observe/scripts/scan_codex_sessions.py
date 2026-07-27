@@ -65,6 +65,19 @@ def touch_turn(turn: dict[str, Any], seen_at: float) -> None:
     turn["last_seen_at"] = max(turn.get("last_seen_at", seen_at), seen_at)
 
 
+def get_turn(
+    turns: dict[tuple[str, str], dict[str, Any]],
+    turn_keys: dict[str, tuple[str, str]],
+    session_id: str,
+    turn_id: str,
+    seen_at: float,
+) -> dict[str, Any]:
+    key = turn_keys.setdefault(turn_id, (session_id, turn_id))
+    turn = turns.setdefault(key, {})
+    touch_turn(turn, seen_at)
+    return turn
+
+
 def scan_files(
     paths: Iterable[Path],
     *,
@@ -77,6 +90,7 @@ def scan_files(
     sessions: set[str] = set()
     scopes: set[str] = set()
     turns: dict[tuple[str, str], dict[str, Any]] = {}
+    turn_keys: dict[str, tuple[str, str]] = {}
     calls_seen: set[str] = set()
     tools: collections.Counter[str] = collections.Counter()
     invalid_lines = 0
@@ -132,8 +146,7 @@ def scan_files(
                     if not isinstance(supplied, str) or not supplied:
                         continue
                     current_turn = supplied
-                    turn = turns.setdefault((session_id, supplied), {})
-                    touch_turn(turn, seen_at)
+                    turn = get_turn(turns, turn_keys, session_id, supplied, seen_at)
                     for source, target in (
                         ("model", "model"),
                         ("approval_policy", "approval"),
@@ -150,19 +163,17 @@ def scan_files(
                     turn_id = payload.get("turn_id")
                     if isinstance(turn_id, str) and turn_id:
                         current_turn = turn_id
-                        turn = turns.setdefault((session_id, turn_id), {})
+                        turn = get_turn(turns, turn_keys, session_id, turn_id, seen_at)
                         turn["started"] = True
-                        touch_turn(turn, seen_at)
                     continue
                 if item_type == "event_msg" and payload_type == "task_complete":
                     turn_id = payload.get("turn_id")
                     if not isinstance(turn_id, str) or not turn_id:
                         continue
                     current_turn = turn_id
-                    turn = turns.setdefault((session_id, turn_id), {})
+                    turn = get_turn(turns, turn_keys, session_id, turn_id, seen_at)
                     turn["started"] = True
                     turn["completed"] = True
-                    touch_turn(turn, seen_at)
                     for source, target in (
                         ("duration_ms", "duration_ms"),
                         ("time_to_first_token_ms", "ttft_ms"),
@@ -176,17 +187,17 @@ def scan_files(
                     turn_id = supplied if isinstance(supplied, str) and supplied else current_turn
                     if turn_id:
                         current_turn = turn_id
-                        turn = turns.setdefault((session_id, turn_id), {})
+                        turn = get_turn(turns, turn_keys, session_id, turn_id, seen_at)
                         turn["started"] = True
                         turn["aborted"] = True
-                        touch_turn(turn, seen_at)
                     continue
                 if item_type == "event_msg" and payload_type == "token_count" and current_turn:
                     info = payload.get("info")
                     usage = info.get("last_token_usage") if isinstance(info, dict) else None
                     if isinstance(usage, dict):
-                        turn = turns.setdefault((session_id, current_turn), {})
-                        touch_turn(turn, seen_at)
+                        turn = get_turn(
+                            turns, turn_keys, session_id, current_turn, seen_at
+                        )
                         for source, target in (
                             ("input_tokens", "input_tokens"),
                             ("output_tokens", "output_tokens"),
@@ -204,12 +215,13 @@ def scan_files(
                     if isinstance(name, str) and name:
                         tools[name] += 1
                     if current_turn:
-                        turn = turns.setdefault((session_id, current_turn), {})
-                        touch_turn(turn, seen_at)
+                        turn = get_turn(
+                            turns, turn_keys, session_id, current_turn, seen_at
+                        )
                         turn["tool_calls"] = turn.get("tool_calls", 0) + 1
                     continue
                 if current_turn:
-                    touch_turn(turns.setdefault((session_id, current_turn), {}), seen_at)
+                    get_turn(turns, turn_keys, session_id, current_turn, seen_at)
 
     started = [turn for turn in turns.values() if turn.get("started")]
     completed = [turn for turn in started if turn.get("completed")]

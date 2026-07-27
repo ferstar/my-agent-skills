@@ -93,6 +93,41 @@ class HarnessObserveTests(unittest.TestCase):
             self.assertEqual(report["turns_orphaned"], 1)
             self.assertEqual(report["active_turn_refs"], [])
 
+    def test_session_metadata_change_does_not_split_turn_lifecycle(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "rollout-resumed-session.jsonl"
+            records = [
+                {"type": "session_meta", "payload": {"session_id": "session-original"}},
+                {
+                    "type": "event_msg",
+                    "payload": {"type": "task_started", "turn_id": "turn-resumed"},
+                },
+                {"type": "session_meta", "payload": {"session_id": "session-resumed"}},
+                {
+                    "type": "turn_context",
+                    "payload": {
+                        "turn_id": "turn-resumed",
+                        "model": "gpt-test",
+                    },
+                },
+                {
+                    "type": "event_msg",
+                    "payload": {"type": "task_complete", "turn_id": "turn-resumed"},
+                },
+            ]
+            path.write_text(
+                "".join(json.dumps(item) + "\n" for item in records), encoding="utf-8"
+            )
+
+            report = SESSION_SCANNER.scan_files(
+                [path], now=path.stat().st_mtime + 120, active_grace_seconds=60
+            )
+
+            self.assertEqual(report["turns_started"], 1)
+            self.assertEqual(report["turns_completed"], 1)
+            self.assertEqual(report["turns_orphaned"], 0)
+            self.assertEqual(report["models"], {"gpt-test": 1})
+
     def test_turn_states_separate_completed_aborted_active_and_orphaned(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             paths = []
