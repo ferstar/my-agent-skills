@@ -200,6 +200,34 @@ glab api --method POST "projects/<namespace>%2F<project>/issues/163/discussions/
   --field body="Reply text"
 ```
 
+### Upload and reuse local attachments in issue / MR evidence
+
+When acceptance evidence is a local screenshot or other file, do not paste a local `C:\...` path into an Issue/MR note. Other reviewers cannot resolve the sender's filesystem. Upload it to the GitLab project first, then use the API response's canonical `full_path` in the note or MR description.
+
+Preferred flow:
+
+```bash
+# 1. Upload the local file as multipart form data.
+upload_json=$(glab api --method POST "projects/<project-id>/uploads" \
+  --form "file=@<absolute-path>/acceptance.webp")
+
+# 2. Build the canonical GitLab URL from full_path; do not hand-build /uploads/...
+asset_path=$(printf '%s' "$upload_json" | jq -r '.full_path')
+asset_url="https://<gitlab-host>${asset_path}"
+
+# 3. Add or update the note with the remote Markdown image.
+glab api --method POST "projects/<project-id>/issues/<iid>/notes" \
+  --raw-field "body=验收附件：![acceptance](${asset_url})"
+```
+
+Rules:
+
+- Prefer the returned `full_path` (normally `/-/project/<id>/uploads/...`) over the shorter `url` (`/uploads/...`) when constructing a reusable absolute link. If the API returns `markdown`, inspect it before using it; do not silently replace a canonical project-scoped path with a root `/uploads/...` path.
+- Verify the upload response contains `id`, `full_path`, and the expected filename before editing the Issue/MR. For an existing workflow-generated acceptance note, preserve its hidden workflow marker when replacing the body.
+- Verify the note body after writing with the notes API and confirm it contains the canonical remote URL, not a local path or a `file://` URI.
+- A private GitLab project may return `302 -> /users/sign_in` to unauthenticated `curl` or a browser. That is an access/session result, not proof that the upload is corrupt. Verify the binary through an authenticated `glab api` request; if non-members must view it, use a separately accessible artifact/storage location rather than assuming project uploads are public.
+- For image evidence, validate the local file type and dimensions before upload. WebP is suitable for screenshots when the target GitLab/browser session renders it; otherwise retain a PNG fallback and verify the rendered note in an authenticated browser session.
+
 ### Download attachments from issue / note threads
 
 When an issue note or discussion note contains `/uploads/...` links and the files must enter the repository, do not rely on the UI URL with plain `curl`. On self-hosted GitLab that often returns an HTML login page instead of the binary file.
