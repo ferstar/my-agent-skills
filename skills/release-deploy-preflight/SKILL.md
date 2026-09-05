@@ -44,7 +44,7 @@ Read project-specific workflow names, ordering, channels, and artifact naming fr
 - Use `ci-first-failure` when an existing run is red.
 - Use `artifact-verify` for complete download, archive integrity, unpacked contents, metadata, and lock/provenance checks.
 - Use `remote-health` only when host reachability or remote services are the failing layer.
-- Reconfirm authority immediately before dispatch. Merge, deploy, release, publish, and cleanup are separate mutations and must each be covered by the user's request.
+- Check prior authorization against the live target immediately before dispatch; do not ask again for the same authorized action. Merge, deploy, release, publish, and cleanup must each be covered by the user's request.
 
 ## Verification
 

@@ -1,6 +1,6 @@
 ---
 name: exa-tools
-description: "Use the bundled Exa API wrapper whenever a task needs live web research, current external sources, technical documentation lookup, code examples, API usage context, or company background research with source URLs, especially when local files are not enough and an MCP server is unnecessary."
+description: "Search the web, technical documentation, code examples, or company information with the bundled Exa wrapper. Use when Exa is requested or useful for external research; prefer a direct source tool when it already supplies the needed evidence."
 argument-hint: "[command] [query]"
 user-invocable: true
 ---

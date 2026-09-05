@@ -22,7 +22,7 @@ git log -1 --oneline
 
 3. If the user mentioned an issue, MR, PR, CI, deploy, branch, or remote service, read that live object before reasoning from memory.
 4. Check only tools needed for the task. Do not run broad version checks by default.
-5. Summarize in at most 6 lines and write the initial checkpoint:
+5. State consequential findings briefly; use a checkpoint only for long or resumed work:
    - repo and branch
    - dirty files
    - linked issue/MR/PR or CI object
@@ -48,7 +48,7 @@ materially change the result. Treat `read-only`, `edit`, `push`, `merge`,
 
 ## Checkpoint contract
 
-Use one compact checkpoint that can be updated or handed off without replaying the whole thread:
+For long or resumed work, use one compact checkpoint that can be updated or handed off without replaying the whole thread. Skip the template for a short task:
 
 ```text
 phase: DISCOVER | DECIDE | IMPLEMENT | VERIFY | SHIP | DONE
@@ -67,8 +67,8 @@ Normal progression is `DISCOVER -> DECIDE -> IMPLEMENT -> VERIFY -> SHIP -> DONE
 
 Preflight records authority but does not expand it. Authority is not transitive:
 edit does not imply push; push does not imply merge; merge does not imply deploy,
-workflow-state mutation, publishing, or cleanup. Reconfirm high-impact authority
-immediately before acting when the target or live state may have drifted.
+workflow-state mutation, publishing, or cleanup. Check existing authorization
+against the live target before acting; ask again only if scope or target materially changed.
 
 The public rationale and progressive-prompt examples live in
 [`docs/prompt-workflow-contract.md`](../../docs/prompt-workflow-contract.md).

@@ -11,7 +11,7 @@ Use this as the delivery loop after implementation is done or when the user asks
 
 ## Scope Check
 
-Say one short scope line before acting:
+State consequential scope once if not already established:
 
 - repo or product area
 - branch and target remote
@@ -33,7 +33,7 @@ Do not ask if the target is already clear from the user's request and live repo 
 
 ## Checkpoint and handoff contract
 
-Maintain the same compact checkpoint used by preflight:
+For long or resumed work, reuse the checkpoint from preflight; do not require a separate artifact for a short delivery:
 
 ```text
 phase: DISCOVER | DECIDE | IMPLEMENT | VERIFY | SHIP | DONE
@@ -63,7 +63,7 @@ Use the progressive authority and terminal-state contract in
 6. Create or update the PR/MR with the real shipped scope.
 7. Check the merge gate and exact head SHA when the platform supports it.
 8. Merge remotely only when explicitly authorized by the user. A request to open or update a PR/MR is not merge authority.
-9. Switch back to updated `main` or the repo's default branch.
+9. When cleanup includes switching branches, return to the updated default branch after checking for unrelated work.
 10. Delete only merged local topic branches, and only when cleanup was requested or is explicit in the stated end-to-end outcome.
 11. Read back each mutated remote object: pushed ref, PR/MR, issue/task state,
     deployment, publication, or deleted branch as applicable.
@@ -80,11 +80,12 @@ Use the progressive authority and terminal-state contract in
 - After merge, derive issue state from the requested workflow: an issue may intentionally remain open with a verification/testing label. Avoid auto-close syntax unless closure is intended.
 - Do not delete remote branches unless explicitly requested or the merge command's source-branch removal is clearly part of the platform flow.
 - Do not touch unrelated untracked files, planning docs, assets, or dirty worktree changes.
-- Do not create Windows worktrees by default; use the current checkout and stash only when necessary.
+- Use the current checkout unless the user authorized another workspace; do not stash unrelated work automatically.
 - Do not broaden validation just because a broad command exists. Broaden for security boundaries, shared protocols, release, deploy, or CI reproduction.
 - Do not turn project memories into facts without checking live state when remotes, versions, CI, releases, or permissions may have changed.
 - A local command succeeding is not sufficient proof of remote completion; read
   the final remote object and bind the result to its exact SHA or identifier.
+- Reuse prior authorization for the same target and scope. Ask only for a missing grant or a material change; finish authorized preparation first.
 
 ## Output
 
