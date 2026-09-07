@@ -94,6 +94,7 @@ Do not start normal tasks with standalone `glab --version`, `jq --version`, or `
 - URL-encode `<namespace>/<project>` as `<namespace>%2F<project>` in API paths.
 - GitLab UI 的 `/-/work_items/<iid>` 在 REST 评论、notes、discussions 场景下通常仍走 `issues/<iid>` 接口；不要假设存在 `work_items/<iid>/notes` 这类 REST 路径。
 - For long multiline Markdown fields, prefer `--raw-field description="$(cat file)"` and validate the rendered result afterward.
+- For note/comment bodies loaded from files, use `--raw-field body="$(cat file)"` rather than `--field body=...` when the text may start with `@` or otherwise look like a file reference; `--field` can try to open the value as a local file and fail instead of posting the comment.
 - Use the known command patterns in this skill first. Do not run `glab <command> --help` while executing documented workflows. If a command fails with an unsupported/unknown flag, inspect that exact subcommand help once, correct the invocation, and only then retry.
 - Treat `glab auth status` as human-readable diagnostic output. Do not build automation around exact wording; use command exit status, configured auth, or explicit env vars as the machine-facing signal.
 - For self-hosted GitLab, set `GITLAB_HOST` first.
